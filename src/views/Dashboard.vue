@@ -728,6 +728,11 @@
                       NIK
                     </th>
                     <th
+                      class="px-4 py-3 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wide"
+                    >
+                      No HP
+                    </th>
+                    <th
                       class="px-4 py-3 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wide hidden sm:table-cell"
                     >
                       Instrumen
@@ -795,6 +800,14 @@
                       class="px-4 py-3 text-xs text-slate-500 font-mono hidden md:table-cell"
                     >
                       {{ d.nik || "-" }}
+                    </td>
+                    <td
+                      class="px-4 py-3 text-xs text-slate-500 font-medium"
+                    >
+                      <span class="flex items-center gap-1.5 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md max-w-max">
+                         <span class="material-symbols-outlined text-[13px] text-emerald-500">call</span>
+                         {{ d.nomor_hp || d.no_hp || d.hp || "-" }}
+                      </span>
                     </td>
                     <td class="px-4 py-3 hidden sm:table-cell">
                       <span :class="instrBadgeCls(d.instrumen)">{{
@@ -1685,13 +1698,13 @@
               <h3 class="text-sm font-bold text-slate-700 mb-4">
                 Pilih Periode Export
               </h3>
-              <div class="flex flex-wrap gap-2 mb-4">
+              <div class="grid grid-cols-2 lg:flex lg:flex-row gap-2 mb-4">
                 <button
                   v-for="p in presets"
                   :key="p.key"
                   @click="setPreset(p.key)"
                   :class="[
-                    'px-4 py-2 rounded-xl text-sm font-semibold border transition-all',
+                    'px-4 py-2 rounded-xl text-[11px] sm:text-sm font-semibold border transition-all text-center flex items-center justify-center',
                     laporanPreset === p.key
                       ? 'border-blue-400 bg-blue-50 text-blue-700'
                       : 'border-slate-200 hover:border-blue-300 text-slate-600',
@@ -1700,62 +1713,73 @@
                   {{ p.label }}
                 </button>
               </div>
-              <div class="flex items-center gap-3">
+              <div class="flex flex-col sm:flex-row items-center gap-3">
                 <input
                   type="date"
                   v-model="laporanDari"
                   @change="renderLaporan()"
-                  class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-blue-400 focus:outline-none"
+                  class="w-full sm:flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-blue-400 focus:outline-none"
                 />
-                <span class="text-sm text-slate-400 font-semibold">s/d</span>
+                <span class="text-sm text-slate-400 font-semibold hidden sm:inline">s/d</span>
+                <span class="text-sm text-slate-400 font-semibold sm:hidden">sampai</span>
                 <input
                   type="date"
                   v-model="laporanSampai"
                   @change="renderLaporan()"
-                  class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-blue-400 focus:outline-none"
+                  class="w-full sm:flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-blue-400 focus:outline-none"
                 />
               </div>
             </div>
             <div class="px-6 py-5">
+              <div class="mb-5 bg-slate-50 border border-slate-200 rounded-xl p-4">
+                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">Filter Kategori / Golongan Usia (Export)</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  <label class="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                    <input type="checkbox" v-model="laporanInstrumenFilter" value="MMYS_ANAK" @change="renderLaporan" class="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                    <span class="text-[11px] sm:text-xs font-semibold text-slate-700">MMYS Anak</span>
+                  </label>
+                  <label class="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                    <input type="checkbox" v-model="laporanInstrumenFilter" value="MMYS_REMAJA" @change="renderLaporan" class="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                    <span class="text-[11px] sm:text-xs font-semibold text-slate-700">MMYS Remaja</span>
+                  </label>
+                  <label class="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                    <input type="checkbox" v-model="laporanInstrumenFilter" value="PHQ4" @change="renderLaporan" class="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                    <span class="text-[11px] sm:text-xs font-semibold text-slate-700">PHQ-4</span>
+                  </label>
+                  <label class="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                    <input type="checkbox" v-model="laporanInstrumenFilter" value="EPDS" @change="renderLaporan" class="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                    <span class="text-[11px] sm:text-xs font-semibold text-slate-700">EPDS</span>
+                  </label>
+                </div>
+              </div>
               <div v-if="laporanSummary" class="space-y-5">
-                <div class="grid grid-cols-3 gap-4 text-center">
-                  <div class="p-4 rounded-xl bg-blue-50 border border-blue-100">
-                    <p class="text-3xl font-black text-blue-700">
-                      {{ laporanSummary.total }}
-                    </p>
-                    <p class="text-xs text-blue-500 font-semibold">Total</p>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div class="bg-blue-50 p-3 rounded-xl flex flex-col items-center justify-center text-center">
+                    <span class="text-2xl font-black text-blue-700">{{ laporanSummary.total }}</span>
+                    <span class="text-[10px] font-bold text-blue-500">Total</span>
                   </div>
-                  <div class="p-4 rounded-xl bg-red-50 border border-red-100">
-                    <p class="text-3xl font-black text-red-700">
-                      {{ laporanSummary.high }}
-                    </p>
-                    <p class="text-xs text-red-500 font-semibold">High Risk</p>
+                  <div class="bg-red-50 p-3 rounded-xl flex flex-col items-center justify-center text-center">
+                    <span class="text-2xl font-black text-red-700">{{ laporanSummary.high }}</span>
+                    <span class="text-[10px] font-bold text-red-500">High Risk</span>
                   </div>
-                  <div
-                    class="p-4 rounded-xl bg-emerald-50 border border-emerald-100"
-                  >
-                    <p class="text-3xl font-black text-emerald-700">
-                      {{ laporanSummary.low }}
-                    </p>
-                    <p class="text-xs text-emerald-500 font-semibold">
-                      Low Risk
-                    </p>
+                  <div class="bg-amber-50 p-3 rounded-xl flex flex-col items-center justify-center text-center">
+                    <span class="text-2xl font-black text-amber-700">{{ laporanSummary.mod }}</span>
+                    <span class="text-[10px] font-bold text-amber-500">Moderate</span>
+                  </div>
+                  <div class="bg-emerald-50 p-3 rounded-xl flex flex-col items-center justify-center text-center">
+                    <span class="text-2xl font-black text-emerald-700">{{ laporanSummary.low }}</span>
+                    <span class="text-[10px] font-bold text-emerald-500">Low Risk</span>
                   </div>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
-                  <div
-                    v-for="ig in laporanSummary.instrumen"
-                    :key="ig.l"
-                    class="flex items-center gap-3 p-3 rounded-xl border border-slate-100 bg-white"
+                
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div 
+                    v-for="ig in laporanSummary.instrumen" 
+                    :key="ig.l" 
+                    class="p-3 rounded-xl border border-slate-100 bg-white flex flex-col items-center justify-center text-center"
                   >
-                    <div
-                      class="w-3 h-10 rounded-sm shrink-0"
-                      :style="{ background: ig.color }"
-                    ></div>
-                    <div>
-                      <p class="text-sm font-bold text-slate-700">{{ ig.v }}</p>
-                      <p class="text-[11px] text-slate-500">{{ ig.l }}</p>
-                    </div>
+                     <span class="text-2xl font-black mb-0" :style="{ color: ig.color }">{{ ig.v }}</span>
+                     <span class="text-[10px] font-bold text-slate-500">{{ ig.l }}</span>
                   </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
@@ -1788,11 +1812,7 @@
         <!-- end laporan view -->
       </main>
 
-      <footer
-        class="py-4 text-center text-xs text-slate-400 border-t border-slate-100 bg-white"
-      >
-        © 2026 UPTD Puskesmas Sekadau — Sistem Skrining Jiwa Terpadu
-      </footer>
+
     </div>
     <!-- end main area -->
 
@@ -1876,15 +1896,23 @@
               </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
-              <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col justify-center">
                 <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">
                   Alamat
                 </p>
                 <p
-                  class="text-sm font-semibold text-slate-700 truncate"
-                  :title="selectedDetail.alamat"
+                  class="text-sm font-semibold text-slate-700 break-words"
                 >
                   {{ selectedDetail.alamat || "-" }}
+                </p>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col justify-center">
+                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">
+                  No HP
+                </p>
+                <p class="text-sm font-semibold text-slate-700 flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px] text-emerald-500">call</span>
+                  {{ selectedDetail.nomor_hp || selectedDetail.no_hp || selectedDetail.hp || "-" }}
                 </p>
               </div>
             </div>
@@ -2678,13 +2706,21 @@ function setPreset(key) {
   }
   renderLaporan();
 }
-function renderLaporan() {
-  const data = store.semuaData.filter((d) => {
+
+const laporanInstrumenFilter = ref(["MMYS_ANAK", "MMYS_REMAJA", "PHQ4", "EPDS"]);
+
+function getLaporanDataToExport() {
+  return store.semuaData.filter((d) => {
     const t = d.tanggal_skrining ? String(d.tanggal_skrining).slice(0, 10) : "";
     if (laporanDari.value && t < laporanDari.value) return false;
     if (laporanSampai.value && t > laporanSampai.value) return false;
+    if (d.instrumen && !laporanInstrumenFilter.value.includes(d.instrumen)) return false;
     return true;
   });
+}
+
+function renderLaporan() {
+  const data = getLaporanDataToExport();
   if (!data.length) {
     laporanSummary.value = null;
     return;
@@ -2704,14 +2740,15 @@ function renderLaporan() {
   laporanSummary.value = {
     total: data.length,
     high: data.filter((d) => d.tingkat_risiko === "High Risk").length,
+    mod: data.filter((d) => d.tingkat_risiko === "Moderate Risk").length,
     low: data.filter((d) => d.tingkat_risiko === "Low Risk").length,
     instrumen: ["MMYS_ANAK", "MMYS_REMAJA", "PHQ4", "EPDS"]
+      .filter((k) => laporanInstrumenFilter.value.includes(k))
       .map((k) => ({
         l: labels[k],
         v: data.filter((d) => d.instrumen === k).length,
         color: colors[k],
-      }))
-      .filter((x) => x.v > 0),
+      })),
   };
 }
 
@@ -2947,14 +2984,9 @@ function exportExcel() {
   }
 }
 function exportExcelLaporan() {
-  const data = store.semuaData.filter((d) => {
-    const t = d.tanggal_skrining ? String(d.tanggal_skrining).slice(0, 10) : "";
-    if (laporanDari.value && t < laporanDari.value) return false;
-    if (laporanSampai.value && t > laporanSampai.value) return false;
-    return true;
-  });
-  if (!data.length) {
-    showToast("Tidak ada data untuk diexport.", "warning");
+  const data = getLaporanDataToExport();
+  if (!data || !data.length) {
+    showToast("Tidak ada data laporan untuk diexport.", "warning");
     return;
   }
   try {
@@ -3016,14 +3048,9 @@ function exportExcelLaporan() {
   }
 }
 function exportPdfLaporan() {
-  const data = store.semuaData.filter((d) => {
-    const t = d.tanggal_skrining ? String(d.tanggal_skrining).slice(0, 10) : "";
-    if (laporanDari.value && t < laporanDari.value) return false;
-    if (laporanSampai.value && t > laporanSampai.value) return false;
-    return true;
-  });
-  if (!data.length) {
-    showToast("Tidak ada data untuk diexport.", "warning");
+  const data = getLaporanDataToExport();
+  if (!data || !data.length) {
+    showToast("Tidak ada data laporan untuk diexport.", "warning");
     return;
   }
   const high = data.filter((d) => d.tingkat_risiko === "High Risk").length;

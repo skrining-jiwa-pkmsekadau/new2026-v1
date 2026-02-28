@@ -834,7 +834,8 @@ function submitIdentitas() {
     tanggal_lahir: f.tglLahir,
     usia: usia.value,
     jenis_kelamin: f.gender,
-    nomor_hp: f.hp.trim(),
+    nomor_hp: f.hp.trim(), // as expected by store/supabase
+    no_hp: f.hp.trim(), // fallback just in case
     is_hamil_nifas: hamilNifas,
     kecamatan: f.kecamatan,
     desa: f.desa,

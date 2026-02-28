@@ -680,7 +680,7 @@ async function simpanKeSupabase() {
     tanggal_lahir: pasien.value.tanggal_lahir,
     usia: pasien.value.usia,
     jenis_kelamin: pasien.value.jenis_kelamin,
-    nomor_hp: pasien.value.nomor_hp,
+    nomor_hp: pasien.value.nomor_hp || pasien.value.no_hp || pasien.value.hp || "-",
     is_hamil_nifas: pasien.value.is_hamil_nifas,
     alamat: pasien.value.alamat,
     kecamatan: pasien.value.kecamatan,
