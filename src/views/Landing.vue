@@ -360,8 +360,8 @@ const instrumentCards = [
 const steps = [
   {
     num: "1",
-    title: "Isi Data Identitas",
-    desc: "Lengkapi formulir data diri pasien. Instrumen skrining dipilih otomatis berdasarkan usia.",
+    title: "Klik Mulai Skrining & Isi Data",
+    desc: "Klik tombol 'Mulai Skrining' di atas, lalu lengkapi formulir data diri pasien. Instrumen skrining dipilih otomatis berdasarkan usia.",
   },
   {
     num: "2",

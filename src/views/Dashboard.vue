@@ -1,134 +1,24 @@
 <template>
-  <div class="flex min-h-screen bg-slate-50">
-    <!-- SIDEBAR (desktop: always visible, mobile: overlay) -->
-    <div
-      v-if="sidebarOpen"
-      class="fixed inset-0 bg-black/40 z-40 lg:hidden"
-      @click="sidebarOpen = false"
-    ></div>
-    <aside
-      :class="[
-        'fixed lg:sticky top-0 left-0 z-50 h-screen flex flex-col transition-all duration-300 lg:translate-x-0 shrink-0 bg-[#0b3d66]',
-        sidebarCollapsed ? 'w-[72px]' : 'w-64',
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-      ]"
-    >
-      <!-- Branding -->
-      <div
-        class="px-4 py-4 border-b border-white/10 flex items-center"
-        :class="sidebarCollapsed ? 'justify-center' : 'gap-3'"
-      >
-        <div
-          class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg shrink-0"
-        >
-          <span class="material-symbols-outlined text-white text-[22px]"
-            >health_and_safety</span
-          >
-        </div>
-        <div v-if="!sidebarCollapsed">
-          <p class="text-white font-extrabold text-sm leading-tight">
-            SSJ Sekadau
-          </p>
-          <p
-            class="text-blue-300 text-[10px] font-semibold tracking-wider uppercase"
-          >
-            Admin Panel
-          </p>
-        </div>
-      </div>
-
-      <!-- Collapse Toggle (desktop only) -->
-      <button
-        @click="sidebarCollapsed = !sidebarCollapsed"
-        class="hidden lg:flex items-center justify-center py-2 text-blue-300 hover:text-white transition-all border-b border-white/10"
-      >
-        <span class="material-symbols-outlined text-[18px]">{{
-          sidebarCollapsed ? "chevron_right" : "chevron_left"
-        }}</span>
-      </button>
-
-      <!-- Nav Items -->
-      <nav class="flex-1 overflow-y-auto py-3 px-2 space-y-1">
-        <button
-          v-for="m in menuItems"
-          :key="m.key"
-          @click="
-            activeView = m.key;
-            sidebarOpen = false;
-          "
-          :class="[
-            'w-full flex items-center gap-3 rounded-xl text-sm font-semibold transition-all',
-            sidebarCollapsed ? 'justify-center px-2 py-3' : 'px-4 py-3',
-            activeView === m.key
-              ? 'bg-white/15 text-white shadow-md shadow-black/10'
-              : 'text-blue-200 hover:bg-white/8 hover:text-white',
-          ]"
-          :title="sidebarCollapsed ? m.label : ''"
-        >
-          <span class="material-symbols-outlined text-[20px]">{{
-            m.icon
-          }}</span>
-          <span v-if="!sidebarCollapsed">{{ m.label }}</span>
-          <span
-            v-if="m.badge && !sidebarCollapsed"
-            class="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500 text-white"
-            >{{ m.badge }}</span
-          >
-        </button>
-      </nav>
-
-      <!-- Sidebar Footer -->
-      <div class="px-2 py-3 border-t border-white/10 space-y-1">
-        <button
-          @click="refreshData"
-          :class="[
-            'w-full flex items-center gap-3 rounded-xl text-sm font-semibold text-blue-200 hover:bg-white/8 hover:text-white transition-all',
-            sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'px-4 py-2.5',
-          ]"
-          :title="sidebarCollapsed ? 'Refresh' : ''"
-        >
-          <span
-            class="material-symbols-outlined text-[18px]"
-            :class="{ 'animate-spin': store.isLoading }"
-            >refresh</span
-          >
-          <span v-if="!sidebarCollapsed">Refresh Data</span>
-        </button>
-        <button
-          @click="showLogoutConfirm = true"
-          :class="[
-            'w-full flex items-center gap-3 rounded-xl text-sm font-semibold text-red-300 hover:bg-red-500/20 hover:text-red-200 transition-all',
-            sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'px-4 py-2.5',
-          ]"
-          :title="sidebarCollapsed ? 'Keluar' : ''"
-        >
-          <span class="material-symbols-outlined text-[18px]">logout</span>
-          <span v-if="!sidebarCollapsed">Keluar</span>
-        </button>
-      </div>
-    </aside>
-
+  <div class="flex flex-col min-h-screen bg-slate-50 pb-[80px]">
     <!-- MAIN AREA -->
-    <div class="flex-1 flex flex-col min-h-screen w-0">
-      <!-- TOPBAR (mobile hamburger + title) -->
+    <div class="flex-1 flex flex-col w-full">
+      <!-- TOPBAR -->
       <header
-        class="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 shadow-sm px-4 py-0"
+        class="sticky top-0 z-30 bg-[#0b3d66] border-b border-white/10 shadow-sm px-4 py-0"
       >
         <div class="flex items-center gap-3 h-14">
-          <button
-            @click="sidebarOpen = !sidebarOpen"
-            class="lg:hidden flex items-center justify-center w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 transition-all"
+          <div
+            class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-md shrink-0"
           >
-            <span class="material-symbols-outlined text-slate-600 text-[20px]"
-              >menu</span
-            >
-          </button>
+            <span class="material-symbols-outlined text-white text-[18px]">health_and_safety</span>
+          </div>
           <div class="flex-1 min-w-0">
-            <h1 class="text-slate-800 font-bold text-sm leading-none">
-              {{ currentTitle }}
+            <h1 class="text-white font-bold text-sm leading-none flex items-center gap-2">
+              SSJ Sekadau
+              <span class="px-2 py-0.5 rounded-full bg-white/20 text-[9px] font-bold tracking-wider uppercase">Admin</span>
             </h1>
-            <p class="text-slate-400 text-[10px] truncate">
-              UPTD Puskesmas Sekadau — Sistem Skrining Jiwa
+            <p class="text-blue-200 text-[10px] truncate">
+              {{ currentTitle }} - UPTD Puskesmas Sekadau
             </p>
           </div>
         </div>
@@ -190,10 +80,10 @@
           </div>
 
           <!-- STAT CARDS -->
-          <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
+          <div class="grid grid-cols-6 lg:grid-cols-5 gap-3 md:gap-4">
             <template v-if="store.isLoading && store.semuaData.length === 0">
               <div
-                class="col-span-2 lg:col-span-4 flex items-center justify-center py-8 text-slate-400"
+                class="col-span-6 lg:col-span-5 flex items-center justify-center py-8 text-slate-400"
               >
                 <div class="spinner mr-2"></div>
                 Memuat data...
@@ -201,9 +91,12 @@
             </template>
             <template v-else>
               <div
-                v-for="c in statCards"
+                v-for="(c, i) in statCards"
                 :key="c.label"
-                class="group bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 md:p-5 flex items-center gap-3 md:gap-4 hover:shadow-lg hover:border-blue-200 transition-all duration-300 hover:-translate-y-0.5"
+                :class="[
+                  'group bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 md:p-5 flex flex-col items-center justify-center text-center gap-3 hover:shadow-lg hover:border-blue-200 transition-all duration-300 hover:-translate-y-0.5',
+                  i < 2 ? 'col-span-3 lg:col-span-1' : 'col-span-2 lg:col-span-1'
+                ]"
               >
                 <div
                   :class="[
@@ -216,21 +109,23 @@
                     >{{ c.icon }}</span
                   >
                 </div>
-                <div class="flex-1 min-w-0">
+                <div class="flex flex-col items-center min-w-0 w-full">
                   <p
-                    class="text-[10px] md:text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5"
+                    class="text-[10px] md:text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5 md:mb-1 truncate w-full"
                   >
                     {{ c.label }}
                   </p>
+                  <h3
+                    class="text-2xl md:text-3xl font-black text-slate-700 leading-none mb-1 md:mb-1.5"
+                  >
+                    {{ c.nilai }}
+                  </h3>
                   <p
                     :class="[
-                      'text-xl md:text-3xl font-black leading-none',
+                      'text-[10px] md:text-[11px] font-semibold truncate w-full',
                       c.txt,
                     ]"
                   >
-                    {{ c.nilai }}
-                  </p>
-                  <p class="text-[10px] md:text-[11px] text-slate-400 mt-0.5">
                     {{ c.sub }}
                   </p>
                 </div>
@@ -661,9 +556,9 @@
           >
             <!-- Filter Header -->
             <div
-              class="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between"
+              class="px-5 py-4 border-b border-slate-100 flex flex-col lg:flex-row gap-4 lg:items-center justify-between"
             >
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 shrink-0">
                 <span
                   class="material-symbols-outlined text-blue-500 text-[18px]"
                   >table_view</span
@@ -674,23 +569,26 @@
                   >{{ store.dataFilter.length }}</span
                 >
               </div>
-              <div class="flex flex-wrap gap-2 w-full sm:w-auto">
-                <div
-                  class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 flex-1"
-                >
-                  <div class="relative col-span-2 sm:col-span-1">
-                    <span
-                      class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[15px]"
-                      >search</span
-                    >
-                    <input
-                      type="text"
-                      placeholder="Cari nama / NIK..."
-                      :value="store.filterCari"
-                      @input="onCariInput($event.target.value)"
-                      class="w-full pl-7 pr-3 py-2 rounded-lg border border-slate-200 focus:border-blue-400 focus:outline-none text-xs text-slate-700 bg-slate-50"
-                    />
-                  </div>
+
+              <!-- Filter Controls Container -->
+              <div class="flex flex-col gap-3 w-full lg:w-auto">
+                <!-- Search -->
+                <div class="relative w-full">
+                  <span
+                    class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[15px]"
+                    >search</span
+                  >
+                  <input
+                    type="text"
+                    placeholder="Cari nama / NIK..."
+                    :value="store.filterCari"
+                    @input="onCariInput($event.target.value)"
+                    class="w-full pl-7 pr-3 py-2 rounded-lg border border-slate-200 focus:border-blue-400 focus:outline-none text-xs text-slate-700 bg-slate-50"
+                  />
+                </div>
+
+                <!-- Selects -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full">
                   <select
                     :value="store.filterInstr"
                     @change="
@@ -744,12 +642,14 @@
                     <option value="P">Perempuan</option>
                   </select>
                 </div>
-                <div class="flex items-center gap-2 flex-wrap">
+
+                <!-- Date Range & Reset -->
+                <div class="flex items-center justify-between gap-2 w-full">
                   <div
-                    class="flex items-center gap-1.5 p-1.5 rounded-lg border border-slate-200 bg-slate-50"
+                    class="flex-1 flex items-center justify-center sm:justify-start gap-1 p-1.5 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden"
                   >
                     <span
-                      class="material-symbols-outlined text-blue-400 text-[14px]"
+                      class="material-symbols-outlined text-blue-400 text-[14px] shrink-0"
                       >calendar_month</span
                     >
                     <input
@@ -759,9 +659,9 @@
                         store.filterTglDari = $event.target.value;
                         store.terapkanFilter();
                       "
-                      class="px-1.5 py-1 rounded border border-slate-200 text-[11px] text-slate-700 bg-white w-[110px]"
+                      class="px-1 py-1 rounded border border-slate-200 text-[10px] sm:text-[11px] text-slate-700 bg-white w-[100px] sm:w-[110px]"
                     />
-                    <span class="text-[10px] text-slate-400">–</span>
+                    <span class="text-[10px] text-slate-400 shrink-0">–</span>
                     <input
                       type="date"
                       :value="store.filterTglSampai"
@@ -769,7 +669,7 @@
                         store.filterTglSampai = $event.target.value;
                         store.terapkanFilter();
                       "
-                      class="px-1.5 py-1 rounded border border-slate-200 text-[11px] text-slate-700 bg-white w-[110px]"
+                      class="px-1 py-1 rounded border border-slate-200 text-[10px] sm:text-[11px] text-slate-700 bg-white w-[100px] sm:w-[110px]"
                     />
                     <button
                       @click="
@@ -777,7 +677,7 @@
                         store.filterTglSampai = '';
                         store.terapkanFilter();
                       "
-                      class="w-5 h-5 rounded flex items-center justify-center hover:bg-red-50 text-slate-400 hover:text-red-500"
+                      class="w-5 h-5 rounded flex items-center justify-center hover:bg-red-50 text-slate-400 hover:text-red-500 shrink-0"
                     >
                       <span class="material-symbols-outlined text-[12px]"
                         >close</span
@@ -786,7 +686,7 @@
                   </div>
                   <button
                     @click="resetAll"
-                    class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-red-300 hover:bg-red-50 text-slate-500 hover:text-red-600 text-xs font-semibold transition-all"
+                    class="flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-red-300 hover:bg-red-50 text-slate-500 hover:text-red-600 text-xs font-semibold transition-all shrink-0 h-full"
                   >
                     <span class="material-symbols-outlined text-[14px]"
                       >filter_alt_off</span
@@ -1000,25 +900,25 @@
         >
           <!-- Tab Navigation -->
           <div
-            class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-2"
+            class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-2 w-full sm:w-auto self-start"
           >
-            <div class="flex flex-wrap gap-1">
+            <div class="flex gap-1 w-full sm:w-auto">
               <button
                 v-for="tab in grafikTabs"
                 :key="tab.key"
                 @click="grafikTab = tab.key"
                 :class="[
-                  'px-3 py-2 rounded-xl text-xs font-bold transition-all',
+                  'flex-1 sm:flex-none py-2.5 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5',
                   grafikTab === tab.key
                     ? 'bg-[#0b3d66] text-white shadow-md'
                     : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700',
                 ]"
               >
                 <span
-                  class="material-symbols-outlined text-[14px] align-middle mr-1"
+                  class="material-symbols-outlined text-[16px] sm:text-[18px]"
                   >{{ tab.icon }}</span
                 >
-                <span class="hidden sm:inline">{{ tab.label }}</span>
+                <span>{{ tab.label }}</span>
               </button>
             </div>
           </div>
@@ -1906,7 +1806,7 @@
         @click="selectedDetail = null"
       ></div>
       <div
-        class="relative z-10 w-full sm:max-w-2xl bg-white sm:rounded-2xl shadow-2xl flex flex-col max-h-[95vh] sm:max-h-[90vh]"
+        class="relative z-10 w-full sm:max-w-2xl bg-white sm:rounded-2xl shadow-2xl flex flex-col h-[90vh] sm:h-[650px] overflow-hidden"
       >
         <div
           class="px-5 py-4 bg-gradient-to-r from-[#0f4b80] to-[#1e88e5] sm:rounded-t-2xl flex items-start justify-between gap-3 shrink-0"
@@ -2383,6 +2283,49 @@
       @confirm="doLogout"
       @cancel="showLogoutConfirm = false"
     />
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] flex items-center justify-around px-2 py-2">
+      <!-- Menu Items -->
+      <button
+        v-for="m in menuItems"
+        :key="m.key"
+        @click="activeView = m.key"
+        :class="[
+          'flex flex-col items-center justify-center w-16 h-14 rounded-xl transition-all relative',
+          activeView === m.key
+            ? 'text-blue-600'
+            : 'text-slate-400 hover:text-slate-600',
+        ]"
+      >
+        <div v-if="activeView === m.key" class="absolute inset-0 bg-blue-50/50 rounded-xl"></div>
+        <span class="material-symbols-outlined text-[20px] relative z-10 mb-0.5" :class="{ 'text-blue-600': activeView === m.key }">{{ m.icon }}</span>
+        <span class="text-[10px] font-bold relative z-10 tracking-tight">{{ m.label }}</span>
+        <span
+          v-if="m.badge"
+          class="absolute top-1 right-1 px-1 min-w-[14px] h-3.5 rounded-full bg-red-500 text-white flex items-center justify-center text-[7px] font-bold shadow-sm"
+        >{{ m.badge }}</span>
+      </button>
+
+      <!-- Separator -->
+      <div class="w-px h-8 bg-slate-200 mx-1"></div>
+
+      <!-- Action Buttons -->
+      <button
+        @click="refreshData"
+        class="flex flex-col items-center justify-center w-14 h-14 rounded-xl text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-all relative"
+      >
+        <span class="material-symbols-outlined text-[18px] mb-0.5" :class="{ 'animate-spin': store.isLoading }">refresh</span>
+        <span class="text-[9px] font-bold">Refresh</span>
+      </button>
+
+      <button
+        @click="showLogoutConfirm = true"
+        class="flex flex-col items-center justify-center w-14 h-14 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all relative"
+      >
+        <span class="material-symbols-outlined text-[18px] mb-0.5">logout</span>
+        <span class="text-[9px] font-bold">Keluar</span>
+      </button>
+    </nav>
   </div>
 </template>
 
@@ -2530,7 +2473,7 @@ const statCards = computed(() => {
     {
       label: "Total Skrining",
       nilai: totalSkrining,
-      sub: `${skriningBulanIni} bulan ini`,
+      sub: "Bulan ini",
       icon: "assignment",
       cls: "from-blue-500 to-blue-600",
       txt: "text-blue-600",
@@ -2538,7 +2481,7 @@ const statCards = computed(() => {
     {
       label: "Pasien Unik",
       nilai: totalUnik,
-      sub: `${unikBulanIni} pasien bulan ini`,
+      sub: "Bulan ini",
       icon: "person",
       cls: "from-indigo-500 to-indigo-600",
       txt: "text-indigo-600",
@@ -2546,7 +2489,7 @@ const statCards = computed(() => {
     {
       label: "High Risk",
       nilai: h,
-      sub: `${totalUnik ? Math.round((h / totalUnik) * 100) : 0}% dari pasien unik`,
+      sub: "Dari pasien unik",
       icon: "emergency",
       cls: "from-red-500 to-red-600",
       txt: "text-red-600",
@@ -2554,7 +2497,7 @@ const statCards = computed(() => {
     {
       label: "Moderate Risk",
       nilai: m,
-      sub: `${totalUnik ? Math.round((m / totalUnik) * 100) : 0}% dari pasien unik`,
+      sub: "Dari pasien unik",
       icon: "warning",
       cls: "from-amber-500 to-amber-600",
       txt: "text-amber-600",
@@ -2562,7 +2505,7 @@ const statCards = computed(() => {
     {
       label: "Low Risk",
       nilai: l,
-      sub: `${totalUnik ? Math.round((l / totalUnik) * 100) : 0}% dari pasien unik`,
+      sub: "Dari pasien unik",
       icon: "check_circle",
       cls: "from-emerald-500 to-emerald-600",
       txt: "text-emerald-600",

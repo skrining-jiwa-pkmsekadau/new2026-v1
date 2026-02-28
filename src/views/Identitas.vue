@@ -36,6 +36,19 @@
     <!-- MAIN -->
     <main class="flex-1 flex flex-col items-center px-4 py-8 relative z-10">
       <div class="w-full max-w-2xl flex flex-col gap-5">
+        <!-- Alert 90 Hari -->
+        <div class="bg-blue-50 border border-blue-200 shadow-sm rounded-2xl p-4 flex items-start gap-3">
+          <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-blue-600 text-[18px]">info</span>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-blue-900 mb-1">Penting: Batas Waktu Skrining</h3>
+            <p class="text-xs text-blue-800 leading-relaxed">
+              Setiap pasien hanya diperbolehkan melakukan skrining <strong>1 kali dalam 90 hari (3 bulan)</strong>. Sistem akan otomatis menolak pengisian kuesioner jika belum melewati batas waktu tersebut.
+            </p>
+          </div>
+        </div>
+
         <!-- Preview Instrumen -->
         <div
           v-if="instrumenPreview"
