@@ -12,6 +12,7 @@ export const useSkriningStore = defineStore('skrining', () => {
   const nikDiblokir          = ref(false)
   const tanggalBolehSkrining = ref(null)
   const sudahSetujuJujur     = ref(false)
+  const isSaved              = ref(false)
 
   // ── Actions ──
 
@@ -26,6 +27,7 @@ export const useSkriningStore = defineStore('skrining', () => {
     nikDiblokir.value          = false
     tanggalBolehSkrining.value = null
     sudahSetujuJujur.value     = false
+    isSaved.value              = false
   }
 
   /** Simpan data identitas pasien */
@@ -76,6 +78,7 @@ export const useSkriningStore = defineStore('skrining', () => {
     nikDiblokir,
     tanggalBolehSkrining,
     sudahSetujuJujur,
+    isSaved,
     // actions
     resetSkrining,
     setPatientData,

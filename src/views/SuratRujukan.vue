@@ -32,8 +32,8 @@
     </header>
 
     <!-- MAIN -->
-    <main class="flex-1 flex flex-col items-center px-4 py-6 relative z-10">
-      <div class="w-full max-w-2xl flex flex-col gap-5">
+    <main class="flex-1 flex flex-col items-center px-4 py-6 relative z-10 print:p-0 print:m-0 print:block">
+      <div class="w-full max-w-2xl flex flex-col gap-5 print:block print:max-w-none print:w-full">
         <!-- FORM EDITABLE FIELDS (no-print) -->
         <div
           class="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden no-print"
@@ -145,51 +145,46 @@
           id="surat-body"
           class="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden print-full"
         >
-          <div class="p-8 sm:p-10">
+          <div class="p-6 sm:p-8">
             <!-- KOP SURAT -->
-            <div
-              class="flex items-center gap-4 border-b-[3px] border-slate-800 pb-4 mb-6"
-            >
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Lambang_Kabupaten_Sekadau.png/200px-Lambang_Kabupaten_Sekadau.png"
-                alt="Logo Sekadau"
-                class="w-16 h-auto shrink-0"
-              />
-              <div class="flex-1 text-center">
-                <p
-                  class="text-[11px] text-slate-600 font-semibold tracking-wide uppercase"
-                >
-                  Pemerintah Kabupaten Sekadau
-                </p>
-                <p
-                  class="text-[11px] text-slate-600 font-semibold tracking-wide uppercase"
-                >
-                  Dinas Kesehatan
-                </p>
-                <h2
-                  class="text-lg font-black text-slate-900 uppercase tracking-wide leading-tight"
-                >
-                  UPT Puskesmas Sekadau
-                </h2>
-                <p class="text-[10px] text-slate-500 mt-0.5">
-                  Jl. Merdeka Sekadau Hilir, Kab. Sekadau, Kalimantan Barat
-                  79582
-                </p>
-                <p class="text-[10px] text-slate-500">
-                  Telp: (0564) 41XXX &nbsp;|&nbsp; Email:
-                  puskesmas.sekadau@gmail.com
-                </p>
+            <div class="border-b border-black pb-0.5 mb-4">
+              <div class="border-b-[3px] border-black pb-2">
+                <div class="flex items-center gap-3 px-1">
+                  <img
+                    src="/sekadau.png"
+                    alt="Logo Sekadau"
+                    class="w-[65px] h-auto shrink-0 mix-blend-multiply"
+                  />
+                  <div class="flex-1 text-center text-black font-sans">
+                    <p class="text-[15px] font-bold tracking-wide uppercase leading-tight">
+                      PEMERINTAH KABUPATEN SEKADAU
+                    </p>
+                    <p class="text-[13px] tracking-wide uppercase leading-tight mt-0.5">
+                      DINAS KESEHATAN, PENGENDALIAN PENDUDUK<br />
+                      DAN KELUARGA BERENCANA
+                    </p>
+                    <h2 class="text-[20px] font-black uppercase tracking-widest leading-tight mt-0.5">
+                      UPTD PUSKESMAS SEKADAU
+                    </h2>
+                    <p class="text-[11px] mt-1">
+                      Jalan Merdeka Barat No. 57 Sekadau Hilir Kode Pos 79582
+                    </p>
+                    <p class="text-[11px] mt-0.5">
+                      Telp. (0564)41290 Fax. (0564)41290 e-mail : <span class="text-blue-700 underline">puskesmas.sekadau@yahoo.com</span>
+                    </p>
+                  </div>
+                  <img
+                    src="/kesehatan.svg"
+                    alt="Logo Bakti Husada"
+                    class="w-[65px] h-auto shrink-0 mix-blend-multiply"
+                  />
+                </div>
               </div>
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Logo_of_the_Ministry_of_Health_of_the_Republic_of_Indonesia.svg/200px-Logo_of_the_Ministry_of_Health_of_the_Republic_of_Indonesia.svg.png"
-                alt="Logo Kemenkes"
-                class="w-14 h-auto shrink-0"
-              />
             </div>
 
             <!-- ISI SURAT -->
             <div
-              class="text-sm text-slate-800 leading-relaxed space-y-4 font-[serif]"
+              class="text-[13px] text-slate-800 leading-snug space-y-2.5 font-[serif]"
               style="font-family: &quot;Times New Roman&quot;, serif"
             >
               <!-- Tanggal -->
@@ -239,7 +234,7 @@
               </p>
 
               <!-- Data Pasien -->
-              <table class="w-full text-sm">
+              <table class="w-full text-[13px]">
                 <tbody>
                   <tr>
                     <td class="py-0.5 align-top w-44">Nama</td>
@@ -296,7 +291,7 @@
 
               <p>Berikut adalah ringkasan hasil skrining awal:</p>
 
-              <table class="w-full text-sm">
+              <table class="w-full text-[13px]">
                 <tbody>
                   <tr>
                     <td class="py-0.5 align-top w-52">Instrumen Skrining</td>
@@ -330,12 +325,12 @@
               </p>
 
               <!-- TTD -->
-              <div class="mt-10 text-right">
+              <div class="mt-6 text-right">
                 <p>Hormat kami,</p>
                 <p class="text-xs text-slate-500">
                   Petugas / Dokter Pemeriksa Puskesmas Sekadau
                 </p>
-                <div class="h-20"></div>
+                <div class="h-16"></div>
                 <p class="font-bold">
                   (
                   {{
@@ -445,6 +440,12 @@ function cetakSurat() {
 
 <style scoped>
 @media print {
+  @page { margin: 1cm; size: A4 auto; }
+  body, html {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
   .no-print {
     display: none !important;
   }
@@ -453,13 +454,13 @@ function cetakSurat() {
     border-radius: 0 !important;
     box-shadow: none !important;
     margin: 0 !important;
-  }
-  body {
-    background: white !important;
+    padding: 0 !important;
+    page-break-inside: avoid;
   }
   #rujukan-print-area {
     background: white !important;
     min-height: auto !important;
+    display: block !important;
   }
 }
 </style>

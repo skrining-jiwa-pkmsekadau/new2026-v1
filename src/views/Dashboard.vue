@@ -1948,16 +1948,28 @@
                   {{ selectedDetail.skor_total ?? "-" }}
                 </p>
               </div>
-              <span
-                :class="[
-                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold border',
-                  riskBadgeLgCls(selectedDetail.tingkat_risiko),
-                ]"
-                ><span class="material-symbols-outlined text-[16px]">{{
-                  riskIconName(selectedDetail.tingkat_risiko)
-                }}</span
-                >{{ selectedDetail.tingkat_risiko || "-" }}</span
-              >
+              <div class="text-right flex flex-col items-end gap-1.5">
+                <span
+                  v-if="detailLengkap"
+                  :class="[
+                    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold border',
+                    detailLengkap.badge_cls,
+                  ]"
+                >
+                  <span class="material-symbols-outlined text-[16px]">{{ detailLengkap.icon }}</span>
+                  {{ detailLengkap.badge }}
+                </span>
+                <span
+                  :class="[
+                    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border',
+                    riskBadgeLgCls(selectedDetail.tingkat_risiko),
+                  ]"
+                  ><span class="material-symbols-outlined text-[14px]">{{
+                    riskIconName(selectedDetail.tingkat_risiko)
+                  }}</span
+                  >{{ selectedDetail.tingkat_risiko || "-" }}</span
+                >
+              </div>
             </div>
             <!-- Skor Detail: MMYS -->
             <div
@@ -2275,11 +2287,19 @@
           </div>
         </div>
         <div
-          class="px-5 py-4 border-t border-slate-100 bg-slate-50 sm:rounded-b-2xl shrink-0"
+          class="px-5 py-4 border-t border-slate-100 bg-slate-50 sm:rounded-b-2xl shrink-0 flex gap-3"
         >
           <button
+            v-if="selectedDetail?.tingkat_risiko === 'High Risk' || selectedDetail?.tingkat_risiko === 'Moderate Risk'"
+            @click="buatSuratRujukan(selectedDetail)"
+            class="flex-1 py-2.5 rounded-xl border border-red-200 bg-red-50 text-red-600 font-bold text-xs transition-all flex items-center justify-center gap-1.5 hover:bg-red-100 shadow-sm"
+          >
+            <span class="material-symbols-outlined text-[16px]">description</span>
+            Buat Surat Rujukan
+          </button>
+          <button
             @click="selectedDetail = null"
-            class="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#0f4b80] to-[#1e88e5] text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 hover:shadow-lg"
+            class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#0f4b80] to-[#1e88e5] text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 hover:shadow-lg"
           >
             <span class="material-symbols-outlined text-[15px]">close</span>
             Tutup
@@ -2361,15 +2381,18 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useDashboardStore } from "@/stores/dashboardStore";
+import { useSkriningStore } from "@/stores/skriningStore";
 import { useToast } from "@/composables/useToast";
 import { formatTanggalID } from "@/utils/helpers";
 import { INSTRUMEN_DATA } from "@/constants/instrumen";
 import { DATA_WILAYAH } from "@/constants/wilayah";
+import { hitungSkor } from "@/utils/skoring";
 import ModalKonfirmasi from "@/components/ModalKonfirmasi.vue";
 import { utils, writeFileXLSX } from "xlsx";
 
 const router = useRouter();
 const store = useDashboardStore();
+const skriningStore = useSkriningStore();
 const { showToast } = useToast();
 
 const selectedDetail = ref(null);
@@ -2756,6 +2779,11 @@ function renderLaporan() {
 function openDetail(d) {
   selectedDetail.value = d;
 }
+
+const detailLengkap = computed(() => {
+  if (!selectedDetail.value || !selectedDetail.value.jawaban) return null;
+  return hitungSkor(selectedDetail.value.instrumen, selectedDetail.value.jawaban);
+});
 const detailJawaban = computed(() => {
   if (!selectedDetail.value) return [];
   const item = selectedDetail.value,
@@ -2983,6 +3011,27 @@ function exportExcel() {
     showToast("Gagal export Excel.", "error");
   }
 }
+function buatSuratRujukan(d) {
+  skriningStore.setPatientData({
+    nama_lengkap: d.nama_lengkap,
+    nik: d.nik,
+    usia: d.usia,
+    tanggal_lahir: d.tanggal_lahir,
+    jenis_kelamin: d.jenis_kelamin,
+    alamat: d.alamat,
+    nomor_hp: d.nomor_hp || d.no_hp || d.hp,
+    tanggal_skrining: d.tanggal_skrining,
+  });
+  skriningStore.setInstrumen(d.instrumen);
+  skriningStore.setHasilSkrining({
+    skor_total: d.skor_total,
+    risk_level: d.tingkat_risiko,
+    badge: d.kesimpulan_klinis,
+    urgent: d.tingkat_risiko === 'High Risk' || d.tingkat_risiko === 'Moderate Risk',
+  });
+  router.push('/rujukan');
+}
+
 function exportExcelLaporan() {
   const data = getLaporanDataToExport();
   if (!data || !data.length) {

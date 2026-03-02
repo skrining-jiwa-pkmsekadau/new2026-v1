@@ -547,16 +547,7 @@
             <span class="material-symbols-outlined text-[18px]">print</span>
             Cetak Hasil
           </button>
-          <button
-            v-if="hasil.urgent"
-            @click="router.push('/rujukan')"
-            class="flex-1 py-3 rounded-xl border-2 border-red-200 hover:border-red-300 bg-red-50 hover:bg-red-100 text-red-700 font-bold text-sm transition-all flex items-center justify-center gap-2"
-          >
-            <span class="material-symbols-outlined text-[18px]"
-              >description</span
-            >
-            Surat Rujukan
-          </button>
+
           <button
             @click="skriningBaru"
             class="flex-[2] py-3 rounded-xl bg-gradient-to-r from-[#0f4b80] to-[#1e88e5] hover:from-[#0a355c] hover:to-[#1565c0] text-white font-bold text-sm shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2"
@@ -601,7 +592,17 @@ onMounted(() => {
     router.replace("/");
     return;
   }
-  simpanKeSupabase();
+  
+  if (!store.isSaved) {
+    simpanKeSupabase();
+  } else {
+    // Jika sudah pernah disimpan, langsung tampilkan status sukses
+    saveStatus.value = {
+      icon: "check_circle",
+      cls: "flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 font-medium",
+      msg: "Data berhasil disimpan ke server.",
+    };
+  }
 });
 
 const pasien = computed(() => store.patientData);
@@ -702,6 +703,10 @@ async function simpanKeSupabase() {
   try {
     const { error } = await db.from("screenings").insert(payload);
     if (error) throw error;
+    
+    // Tandai bahwa data sudah tersimpan di sesi ini
+    store.isSaved = true;
+
     saveStatus.value = {
       icon: "check_circle",
       cls: "flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 font-medium",
