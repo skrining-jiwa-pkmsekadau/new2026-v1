@@ -14,7 +14,7 @@
           </div>
           <div class="flex-1 min-w-0">
             <h1 class="text-white font-bold text-sm leading-none flex items-center gap-2">
-              SSJ Sekadau
+              PIJAR Puskesmas Sekadau
               <span class="px-2 py-0.5 rounded-full bg-white/20 text-[9px] font-bold tracking-wider uppercase">Admin</span>
             </h1>
             <p class="text-blue-200 text-[10px] truncate">
@@ -46,7 +46,7 @@
                 Selamat Datang, Admin 👋
               </h2>
               <p class="text-blue-200 text-xs md:text-sm">
-                Dashboard Sistem Skrining Jiwa — UPTD Puskesmas Sekadau
+                Dashboard Pemeriksaan Indikator Jiwa & Analisa Risiko — UPTD Puskesmas Sekadau
               </p>
               <div class="flex flex-wrap items-center gap-2 mt-3">
                 <div

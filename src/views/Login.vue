@@ -25,7 +25,7 @@
         </div>
         <h1 class="text-2xl font-bold text-slate-800">Login Admin</h1>
         <p class="text-sm text-slate-500 mt-1">
-          Sistem Skrining Jiwa — Puskesmas Sekadau
+          Pemeriksaan Indikator Jiwa & Analisa Risiko — Puskesmas Sekadau
         </p>
       </div>
 

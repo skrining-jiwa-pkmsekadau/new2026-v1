@@ -280,7 +280,7 @@
               <!-- Hasil Skrining -->
               <p>
                 Berdasarkan hasil deteksi dini melalui
-                <strong>Sistem Skrining Jiwa (SSJ)</strong> pada tanggal
+                <strong>Pemeriksaan Indikator Jiwa & Analisa Risiko (PIJAR)</strong> pada tanggal
                 <strong>{{
                   formatTanggalSurat(pasien.tanggal_skrining)
                 }}</strong
