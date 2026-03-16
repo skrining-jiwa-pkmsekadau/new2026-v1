@@ -131,6 +131,8 @@
                 <input
                   v-model="form.nik"
                   type="text"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
                   maxlength="16"
                   placeholder="16 digit Nomor Induk Kependudukan"
                   class="warm-input w-full pl-10 pr-4 py-2.5 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none font-mono"
@@ -296,6 +298,8 @@
                 <input
                   v-model="form.hp"
                   type="tel"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
                   placeholder="Contoh: 08123456789"
                   class="warm-input w-full pl-10 pr-4 py-2.5 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none"
                   @input="form.hp = form.hp.replace(/\D/g, '')"
@@ -440,12 +444,71 @@
                   class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[18px]"
                   >work</span
                 >
-                <input
+                <select
                   v-model="form.pekerjaan"
-                  type="text"
-                  placeholder="Contoh: Pelajar, Petani, Pegawai Swasta, IRT"
-                  class="w-full pl-9 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-400 focus:outline-none bg-white text-slate-700 text-sm font-medium transition-all placeholder:text-slate-300"
-                />
+                  class="w-full pl-9 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-400 focus:outline-none bg-white text-slate-700 text-sm font-medium appearance-none transition-all"
+                >
+                  <option value="">-- Pilih Pekerjaan --</option>
+                  <option v-for="p in pekerjaanOptions" :key="p" :value="p">
+                    {{ p }}
+                  </option>
+                </select>
+                <span
+                  class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[16px] pointer-events-none"
+                  >expand_more</span
+                >
+              </div>
+            </div>
+
+            <!-- Nama Sekolah (Kondisional untuk Pelajar) -->
+            <div v-if="form.pekerjaan === 'Pelajar'">
+              <label class="block text-sm font-semibold text-slate-700 mb-1.5"
+                >Nama Sekolah <span class="text-red-400">*</span></label
+              >
+              <div class="relative">
+                <span
+                  class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[18px]"
+                  >account_balance</span
+                >
+                <select
+                  v-model="form.namaSekolah"
+                  class="w-full pl-9 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-400 focus:outline-none bg-white text-slate-700 text-sm font-medium appearance-none transition-all"
+                >
+                  <option value="">-- Pilih Sekolah --</option>
+                  <option v-for="s in namaSekolahOptions" :key="s" :value="s">
+                    {{ s }}
+                  </option>
+                </select>
+                <span
+                  class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[16px] pointer-events-none"
+                  >expand_more</span
+                >
+              </div>
+            </div>
+
+            <!-- Nama Kampus (Kondisional untuk Mahasiswa) -->
+            <div v-if="form.pekerjaan === 'Mahasiswa'">
+              <label class="block text-sm font-semibold text-slate-700 mb-1.5"
+                >Nama Kampus <span class="text-red-400">*</span></label
+              >
+              <div class="relative">
+                <span
+                  class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[18px]"
+                  >account_balance</span
+                >
+                <select
+                  v-model="form.namaSekolah"
+                  class="w-full pl-9 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-400 focus:outline-none bg-white text-slate-700 text-sm font-medium appearance-none transition-all"
+                >
+                  <option value="">-- Pilih Kampus --</option>
+                  <option v-for="k in namaKampusOptions" :key="k" :value="k">
+                    {{ k }}
+                  </option>
+                </select>
+                <span
+                  class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[16px] pointer-events-none"
+                  >expand_more</span
+                >
               </div>
             </div>
 
@@ -626,6 +689,7 @@ const form = ref({
   alamat: "",
   pendidikan: "",
   pekerjaan: "",
+  namaSekolah: "",
   tempatSkrining: "",
   hamil: "",
 });
@@ -638,6 +702,78 @@ const pendidikanOptions = [
   "D3/D4",
   "S1",
   "S2/S3",
+];
+
+const pekerjaanOptions = [
+  "ASN",
+  "Pegawai Honorer",
+  "BUMN",
+  "TNI",
+  "Polri",
+  "Karyawan Swasta",
+  "Wiraswasta /Pengusaha/ Pedagang",
+  "Petani / Nelayan / Peternak",
+  "Pekerja Lepas",
+  "Pensiunan",
+  "Pelajar",
+  "Mahasiswa",
+  "Ibu Rumah Tangga",
+  "Tidak Bekerja",
+  "Lainnya",
+];
+
+const namaSekolahOptions = [
+  "SMA NEGERI 01",
+  "SMA KARYA",
+  "SMK KELING KUMANG",
+  "SMK AMALIYAH",
+  "SMK NEGERI 01",
+  "SMA AL RAHMAH",
+  "SMA NEGERI 02",
+  "SMA NEGERI 05",
+  "MTS AL RAHMAH",
+  "SMP IT AR RAYYAN",
+  "SMP NEGERI 10",
+  "SMPK SANTO GABRIEL",
+  "SMP NEGERI 01",
+  "MTS NEGERI",
+  "SMP NEGERI 05",
+  "SMP NEGERI 03",
+  "SDB SLAMET RIYADI",
+  "SD SWASTA FILIPI",
+  "SD NEGERI 01 SEKADAU",
+  "SD NEGERI 04",
+  "SD NEGERI 21",
+  "SD /MIN SEKADAU",
+  "SD NEGERI 14 SUNGAI PUTAT",
+  "SD NEGERI 03",
+  "SD NEGERI 47",
+  "SD IT AR RAYYAN",
+  "SD AL RAHMAH",
+  "SD NEGERI 17",
+  "SD NEGERI 18 PANGKIN",
+  "SD NEGERI 06",
+  "SD NEGERI 26 TERIBANG",
+  "SD NEGERI 27",
+  "SD NEGERI 44 SUNGAI AKAR",
+  "SD NEGERI SEJIRAK EMPERANANG",
+  "SD NEGERI 06 PENITI",
+  "SD NEGERI 38 MERAH AIR",
+  "SD NEGERI 19 SERIRANG",
+  "SD NEGERI 20 SERAMPUK",
+  "SD NEGERI 30 AMAK",
+  "SD NEGERI 51",
+  "SD NEGERI 46 ENSALANG",
+  "SD NEGERI 41 ENSALI",
+  "SD NEGERI 16 TELUK PASIR",
+  "SD NEGERI 03 TANJUNG",
+  "Lainnya",
+];
+
+const namaKampusOptions = [
+  "Institute Keling Kumang",
+  "Universitas Terbuka",
+  "Lainnya",
 ];
 
 // ── Computed ──
@@ -660,6 +796,16 @@ watch(
   () => form.value.kecamatan,
   () => {
     form.value.desa = "";
+  },
+);
+
+// Reset namaSekolah saat pekerjaan bukan Pelajar/Mahasiswa
+watch(
+  () => form.value.pekerjaan,
+  (newJob) => {
+    if (newJob !== "Pelajar" && newJob !== "Mahasiswa") {
+      form.value.namaSekolah = "";
+    }
   },
 );
 
@@ -801,6 +947,12 @@ function submitIdentitas() {
     return showToast("Alamat lengkap harus diisi.", "error");
   if (!f.pendidikan) return showToast("Pilih pendidikan terakhir.", "error");
   if (!f.pekerjaan.trim()) return showToast("Pekerjaan harus diisi.", "error");
+
+  if (f.pekerjaan === "Pelajar" && !f.namaSekolah.trim())
+    return showToast("Nama sekolah harus dipilih.", "error");
+  if (f.pekerjaan === "Mahasiswa" && !f.namaSekolah.trim())
+    return showToast("Nama kampus harus dipilih.", "error");
+
   if (!f.tempatSkrining.trim())
     return showToast("Tempat skrining harus diisi.", "error");
 
@@ -842,6 +994,7 @@ function submitIdentitas() {
     alamat: f.alamat.trim(),
     pendidikan: f.pendidikan,
     pekerjaan: f.pekerjaan.trim(),
+    nama_sekolah: f.namaSekolah.trim() || null,
     tanggal_skrining: hariIni(),
     tempat_skrining: f.tempatSkrining.trim(),
   });

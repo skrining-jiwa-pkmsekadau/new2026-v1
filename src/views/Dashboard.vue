@@ -588,7 +588,7 @@
                 </div>
 
                 <!-- Selects -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full">
+                <div class="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-5 gap-2 w-full">
                   <select
                     :value="store.filterInstr"
                     @change="
@@ -640,6 +640,19 @@
                     <option value="">Semua Gender</option>
                     <option value="L">Laki-laki</option>
                     <option value="P">Perempuan</option>
+                  </select>
+                  <select
+                    :value="store.filterSekolah"
+                    @change="
+                      store.filterSekolah = $event.target.value;
+                      store.terapkanFilter();
+                    "
+                    class="col-span-2 sm:col-span-4 xl:col-span-1 px-2 py-2 rounded-lg border border-slate-200 focus:border-blue-400 focus:outline-none text-xs text-slate-700 bg-slate-50 truncate w-full"
+                  >
+                    <option value="">Semua Sekolah/Kampus</option>
+                    <option v-for="s in semuaSekolahKampusOptions" :key="s" :value="s">
+                      {{ s }}
+                    </option>
                   </select>
                 </div>
 
@@ -1751,6 +1764,20 @@
                     <span class="text-[11px] sm:text-xs font-semibold text-slate-700">EPDS</span>
                   </label>
                 </div>
+                <!-- Tambahan Filter Sekolah -->
+                <div class="mt-4 pt-4 border-t border-slate-200">
+                  <p class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">Filter Sekolah / Kampus (Opsional)</p>
+                  <select
+                    v-model="laporanSekolahFilter"
+                    @change="renderLaporan"
+                    class="w-full sm:max-w-xs px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-blue-400 focus:outline-none bg-white font-medium text-slate-700"
+                  >
+                    <option value="">Semua Sekolah/Kampus</option>
+                    <option v-for="s in semuaSekolahKampusOptions" :key="s" :value="s">
+                      {{ s }}
+                    </option>
+                  </select>
+                </div>
               </div>
               <div v-if="laporanSummary" class="space-y-5">
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -2428,6 +2455,57 @@ const currentTitle = computed(() => {
 });
 
 const kecamatanList = Object.keys(DATA_WILAYAH);
+
+const semuaSekolahKampusOptions = [
+  "SMA NEGERI 01",
+  "SMA KARYA",
+  "SMK KELING KUMANG",
+  "SMK AMALIYAH",
+  "SMK NEGERI 01",
+  "SMA AL RAHMAH",
+  "SMA NEGERI 02",
+  "SMA NEGERI 05",
+  "MTS AL RAHMAH",
+  "SMP IT AR RAYYAN",
+  "SMP NEGERI 10",
+  "SMPK SANTO GABRIEL",
+  "SMP NEGERI 01",
+  "MTS NEGERI",
+  "SMP NEGERI 05",
+  "SMP NEGERI 03",
+  "SDB SLAMET RIYADI",
+  "SD SWASTA FILIPI",
+  "SD NEGERI 01 SEKADAU",
+  "SD NEGERI 04",
+  "SD NEGERI 21",
+  "SD /MIN SEKADAU",
+  "SD NEGERI 14 SUNGAI PUTAT",
+  "SD NEGERI 03",
+  "SD NEGERI 47",
+  "SD IT AR RAYYAN",
+  "SD AL RAHMAH",
+  "SD NEGERI 17",
+  "SD NEGERI 18 PANGKIN",
+  "SD NEGERI 06",
+  "SD NEGERI 26 TERIBANG",
+  "SD NEGERI 27",
+  "SD NEGERI 44 SUNGAI AKAR",
+  "SD NEGERI SEJIRAK EMPERANANG",
+  "SD NEGERI 06 PENITI",
+  "SD NEGERI 38 MERAH AIR",
+  "SD NEGERI 19 SERIRANG",
+  "SD NEGERI 20 SERAMPUK",
+  "SD NEGERI 30 AMAK",
+  "SD NEGERI 51",
+  "SD NEGERI 46 ENSALANG",
+  "SD NEGERI 41 ENSALI",
+  "SD NEGERI 16 TELUK PASIR",
+  "SD NEGERI 03 TANJUNG",
+  "Institute Keling Kumang",
+  "Universitas Terbuka",
+  "Lainnya",
+];
+
 const presets = [
   { key: "minggu", label: "Minggu Ini" },
   { key: "bulan", label: "Bulan Ini" },
@@ -2731,6 +2809,7 @@ function setPreset(key) {
 }
 
 const laporanInstrumenFilter = ref(["MMYS_ANAK", "MMYS_REMAJA", "PHQ4", "EPDS"]);
+const laporanSekolahFilter = ref("");
 
 function getLaporanDataToExport() {
   return store.semuaData.filter((d) => {
@@ -2738,6 +2817,7 @@ function getLaporanDataToExport() {
     if (laporanDari.value && t < laporanDari.value) return false;
     if (laporanSampai.value && t > laporanSampai.value) return false;
     if (d.instrumen && !laporanInstrumenFilter.value.includes(d.instrumen)) return false;
+    if (laporanSekolahFilter.value && d.nama_sekolah !== laporanSekolahFilter.value) return false;
     return true;
   });
 }
@@ -2969,6 +3049,7 @@ function exportExcel() {
           : d.jenis_kelamin === "P"
             ? "Perempuan"
             : "-",
+      "Sekolah/Kampus": d.nama_sekolah || "-",
       "No HP": d.nomor_hp || "-",
       Alamat: d.alamat || "-",
       Kecamatan: d.kecamatan || "-",
@@ -2990,6 +3071,7 @@ function exportExcel() {
       { wch: 20 },
       { wch: 6 },
       { wch: 14 },
+      { wch: 25 },
       { wch: 16 },
       { wch: 30 },
       { wch: 16 },
@@ -3051,6 +3133,7 @@ function exportExcelLaporan() {
           : d.jenis_kelamin === "P"
             ? "Perempuan"
             : "-",
+      "Sekolah/Kampus": d.nama_sekolah || "-",
       "No HP": d.nomor_hp || "-",
       Alamat: d.alamat || "-",
       Kecamatan: d.kecamatan || "-",
@@ -3072,6 +3155,7 @@ function exportExcelLaporan() {
       { wch: 20 },
       { wch: 6 },
       { wch: 14 },
+      { wch: 25 },
       { wch: 16 },
       { wch: 30 },
       { wch: 16 },
@@ -3112,10 +3196,10 @@ function exportPdfLaporan() {
   const tableRows = data
     .map(
       (d, i) =>
-        `<tr><td>${i + 1}</td><td>${d.tanggal_skrining || "-"}</td><td>${d.nama_lengkap || "-"}</td><td>${d.nik || "-"}</td><td>${d.usia || "-"}</td><td>${d.jenis_kelamin === "L" ? "L" : "P"}</td><td>${instrLabelText(d.instrumen)}</td><td>${d.skor_total ?? "-"}</td><td>${d.tingkat_risiko || "-"}</td></tr>`,
+        `<tr><td>${i + 1}</td><td>${d.tanggal_skrining || "-"}</td><td>${d.nama_lengkap || "-"}</td><td>${d.nik || "-"}</td><td>${d.usia || "-"}</td><td>${d.jenis_kelamin === "L" ? "L" : "P"}</td><td>${d.nama_sekolah || "-"}</td><td>${instrLabelText(d.instrumen)}</td><td>${d.skor_total ?? "-"}</td><td>${d.tingkat_risiko || "-"}</td></tr>`,
     )
     .join("");
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan SSJ Sekadau</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;padding:24px;font-size:11px}h1{font-size:16px;margin-bottom:4px}h2{font-size:13px;color:#555;margin-bottom:16px}.stats{display:flex;gap:16px;margin-bottom:20px}.stat-card{flex:1;padding:12px;border:1px solid #ddd;border-radius:8px;text-align:center}.stat-num{font-size:24px;font-weight:900}.high{color:#dc2626}.mod{color:#d97706}.low{color:#059669}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#f1f5f9;font-size:10px;text-transform:uppercase}@media print{body{padding:12px}}</style></head><body><h1>Laporan Sistem Skrining Jiwa</h1><h2>UPTD Puskesmas Sekadau — Periode: ${periode}</h2><div class="stats"><div class="stat-card"><div class="stat-num">${data.length}</div><div>Total</div></div><div class="stat-card"><div class="stat-num high">${high}</div><div>High Risk</div></div><div class="stat-card"><div class="stat-num mod">${mod}</div><div>Moderate</div></div><div class="stat-card"><div class="stat-num low">${low}</div><div>Low Risk</div></div></div><table><thead><tr><th>No</th><th>Tanggal</th><th>Nama</th><th>NIK</th><th>Usia</th><th>JK</th><th>Instrumen</th><th>Skor</th><th>Risiko</th></tr></thead><tbody>${tableRows}</tbody></table></body></html>`;
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan SSJ Sekadau</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;padding:24px;font-size:11px}h1{font-size:16px;margin-bottom:4px}h2{font-size:13px;color:#555;margin-bottom:16px}.stats{display:flex;gap:16px;margin-bottom:20px}.stat-card{flex:1;padding:12px;border:1px solid #ddd;border-radius:8px;text-align:center}.stat-num{font-size:24px;font-weight:900}.high{color:#dc2626}.mod{color:#d97706}.low{color:#059669}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#f1f5f9;font-size:10px;text-transform:uppercase}@media print{body{padding:12px}}</style></head><body><h1>Laporan Sistem Skrining Jiwa</h1><h2>UPTD Puskesmas Sekadau — Periode: ${periode}</h2><div class="stats"><div class="stat-card"><div class="stat-num">${data.length}</div><div>Total</div></div><div class="stat-card"><div class="stat-num high">${high}</div><div>High Risk</div></div><div class="stat-card"><div class="stat-num mod">${mod}</div><div>Moderate</div></div><div class="stat-card"><div class="stat-num low">${low}</div><div>Low Risk</div></div></div><table><thead><tr><th>No</th><th>Tanggal</th><th>Nama</th><th>NIK</th><th>Usia</th><th>JK</th><th>Sekolah</th><th>Instrumen</th><th>Skor</th><th>Risiko</th></tr></thead><tbody>${tableRows}</tbody></table></body></html>`;
   const iframe = document.createElement("iframe");
   iframe.style.position = "absolute";
   iframe.style.width = "0";

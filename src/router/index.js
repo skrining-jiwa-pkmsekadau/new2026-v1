@@ -1,5 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
-
+import { db } from '@/services/supabase'
 const routes = [
   {
     path: '/',
@@ -50,6 +50,17 @@ const router = createRouter({
   scrollBehavior() {
     return { top: 0 }
   },
+})
+
+// Navigation Guard
+router.beforeEach(async (to, from, next) => {
+  if (to.meta.requiresAuth) {
+    const { data: { session } } = await db.auth.getSession()
+    if (!session) {
+      return next('/login')
+    }
+  }
+  next()
 })
 
 export default router

@@ -688,6 +688,7 @@ async function simpanKeSupabase() {
     desa: pasien.value.desa,
     pendidikan: pasien.value.pendidikan,
     pekerjaan: pasien.value.pekerjaan,
+    nama_sekolah: pasien.value.nama_sekolah || null,
     tanggal_skrining: pasien.value.tanggal_skrining,
     tempat_skrining: pasien.value.tempat_skrining,
     instrumen: store.instrumen,
