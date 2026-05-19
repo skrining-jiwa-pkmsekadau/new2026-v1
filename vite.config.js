@@ -6,9 +6,10 @@ import { fileURLToPath, URL } from 'node:url'
 export default defineConfig({
   plugins: [vue()],
 
-  // Base path untuk deployment ke GitHub Pages:
-  // repo: kejiwaan-pkm-sekadau/new2026-v1
-  base: '/new2026-v1/',
+  // Base path:
+  // - GitHub Pages: '/new2026-v1/'
+  // - Vercel/lainnya: '/'
+  base: process.env.VITE_BASE_PATH || '/',
 
   resolve: {
     alias: {
