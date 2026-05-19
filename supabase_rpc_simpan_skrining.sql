@@ -16,7 +16,7 @@ DECLARE
   v_jawaban JSONB;
   v_skor_total INT := 0;
   v_skor_detail JSONB := '{}'::JSONB;
-  v_tingkat_risiko TEXT := 'TIDAK_ADA';
+  v_tingkat_risiko TEXT := 'Low Risk';
   v_kesimpulan_klinis TEXT := '';
   v_rekomendasi JSONB := '[]'::JSONB;
   v_skor_a INT;
@@ -61,9 +61,9 @@ BEGIN
     END IF;
 
     -- Ambil level tertinggi
-    IF v_hasil_a = 'BERAT' OR v_hasil_b = 'BERAT' THEN v_tingkat_risiko := 'BERAT';
-    ELSIF v_hasil_a = 'RINGAN' OR v_hasil_b = 'RINGAN' THEN v_tingkat_risiko := 'RINGAN';
-    ELSE v_tingkat_risiko := 'TIDAK_ADA';
+    IF v_hasil_a = 'BERAT' OR v_hasil_b = 'BERAT' THEN v_tingkat_risiko := 'High Risk';
+    ELSIF v_hasil_a = 'RINGAN' OR v_hasil_b = 'RINGAN' THEN v_tingkat_risiko := 'Moderate Risk';
+    ELSE v_tingkat_risiko := 'Low Risk';
     END IF;
 
     v_skor_detail := jsonb_build_object('skor_A', v_skor_a, 'skor_B', v_skor_b, 'hasil_A', v_hasil_a, 'hasil_B', v_hasil_b);
@@ -74,10 +74,10 @@ BEGIN
     v_gad2 := (v_jawaban->2->>'value')::INT + (v_jawaban->3->>'value')::INT;
     v_skor_total := v_phq2 + v_gad2;
 
-    IF v_phq2 >= 3 AND v_gad2 >= 3 THEN v_tingkat_risiko := 'DEPRESI_DAN_KECEMASAN';
-    ELSIF v_phq2 >= 3 THEN v_tingkat_risiko := 'DEPRESI';
-    ELSIF v_gad2 >= 3 THEN v_tingkat_risiko := 'KECEMASAN';
-    ELSE v_tingkat_risiko := 'TIDAK_ADA';
+    IF v_phq2 >= 3 AND v_gad2 >= 3 THEN v_tingkat_risiko := 'High Risk';
+    ELSIF v_phq2 >= 3 THEN v_tingkat_risiko := 'Moderate Risk';
+    ELSIF v_gad2 >= 3 THEN v_tingkat_risiko := 'Moderate Risk';
+    ELSE v_tingkat_risiko := 'Low Risk';
     END IF;
 
     v_skor_detail := jsonb_build_object('skor_phq2', v_phq2, 'skor_gad2', v_gad2);
@@ -97,9 +97,9 @@ BEGIN
 
     v_skor_total := v_total_epds;
 
-    IF v_total_epds >= 13 OR v_flag_e10 THEN v_tingkat_risiko := 'DEPRESI';
-    ELSIF v_total_epds >= 9 THEN v_tingkat_risiko := 'PERLU_MONITORING';
-    ELSE v_tingkat_risiko := 'TIDAK_ADA';
+    IF v_total_epds >= 13 OR v_flag_e10 THEN v_tingkat_risiko := 'High Risk';
+    ELSIF v_total_epds >= 9 THEN v_tingkat_risiko := 'Moderate Risk';
+    ELSE v_tingkat_risiko := 'Low Risk';
     END IF;
 
     v_skor_detail := jsonb_build_object('flag_e10', v_flag_e10);
