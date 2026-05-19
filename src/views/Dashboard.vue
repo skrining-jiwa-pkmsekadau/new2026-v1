@@ -3096,7 +3096,6 @@ function exportExcel() {
     URL.revokeObjectURL(url);
     showToast(`${data.length} data berhasil diexport ke CSV.`, "success");
   } catch (err) {
-    console.error("[exportExcel]", err);
     showToast("Gagal export.", "error");
   }
 }
@@ -3162,7 +3161,6 @@ function exportExcelLaporan() {
     URL.revokeObjectURL(url);
     showToast(`${data.length} data berhasil diexport ke CSV.`, "success");
   } catch (err) {
-    console.error("[exportExcelLaporan]", err);
     showToast("Gagal export.", "error");
   }
 }

@@ -839,7 +839,6 @@ async function cekRiwayatNIK(nik) {
     const { data, error } = await db.rpc("cek_riwayat_nik", { p_nik: nik });
 
     if (error) {
-      console.error("Gagal memeriksa riwayat:", error.message);
       throw error;
     }
 
@@ -957,8 +956,7 @@ function submitIdentitas() {
     tanggal_lahir: f.tglLahir,
     usia: usia.value,
     jenis_kelamin: f.gender,
-    nomor_hp: f.hp.trim(), // as expected by store/supabase
-    no_hp: f.hp.trim(), // fallback just in case
+    nomor_hp: f.hp.trim(),
     is_hamil_nifas: hamilNifas,
     kecamatan: f.kecamatan,
     desa: f.desa,

@@ -684,7 +684,7 @@ async function simpanKeSupabase() {
     tanggal_lahir: pasien.value.tanggal_lahir,
     usia: pasien.value.usia,
     jenis_kelamin: pasien.value.jenis_kelamin,
-    nomor_hp: pasien.value.nomor_hp || pasien.value.no_hp || pasien.value.hp || "-",
+    nomor_hp: pasien.value.nomor_hp || "-",
     is_hamil_nifas: pasien.value.is_hamil_nifas,
     alamat: pasien.value.alamat,
     kecamatan: pasien.value.kecamatan,
@@ -712,14 +712,13 @@ async function simpanKeSupabase() {
     };
     showToast("Data skrining berhasil disimpan!", "success");
   } catch (err) {
-    console.error("Supabase Insert Error:", err);
     saveStatus.value = {
       loading: false,
       icon: "warning",
       cls: "flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-700 font-medium",
       msg: "Gagal menyimpan: " + (err.message || "Cek koneksi internet."),
     };
-    showToast("Gagal simpan ke server. Buka console untuk detail.", "error");
+    showToast("Gagal menyimpan data.", "error");
   }
 }
 

@@ -68,7 +68,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
       dataFilter.value = [...semuaData.value]
       halamanAktif.value = 1
     } catch (err) {
-      console.error('[Dashboard] fetchData error:', err)
       throw err
     } finally {
       isLoading.value = false

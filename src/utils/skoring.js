@@ -314,7 +314,6 @@ export function hitungSkor(instrumen, answers) {
   }
 
   if (!skorData) {
-    console.error('[hitungSkor] instrumen tidak dikenali:', instrumen)
     return null
   }
 
@@ -324,7 +323,6 @@ export function hitungSkor(instrumen, answers) {
     HASIL_INTERPRETASI[kategori]?.['TIDAK_ADA']
 
   if (!interp) {
-    console.error('[hitungSkor] interpretasi tidak ditemukan:', kategori, skorData.tingkat_risiko)
     return null
   }
 
