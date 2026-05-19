@@ -669,7 +669,6 @@ import {
   nentukanInstrumen,
   hariIni,
   formatTanggalID,
-  escHtml,
 } from "@/utils/helpers";
 import { db } from "@/services/supabase";
 
@@ -846,7 +845,7 @@ async function cekRiwayatNIK(nik) {
 
     if (!data || data.length === 0) {
       nikStatus.value.html = `<div class="flex items-center gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-700">
-        <span class="material-symbols-outlined text-[15px]">person_add</span>NIK baru — belum ada riwayat.</div>`;
+        <span class="material-symbols-outlined text-[15px]">check_circle</span>NIK dapat digunakan untuk skrining.</div>`;
       return;
     }
     const BATAS_HARI = 90;
@@ -869,50 +868,22 @@ async function cekRiwayatNIK(nik) {
     const tglBoleh = new Date(tglTerakhir);
     tglBoleh.setDate(tglTerakhir.getDate() + BATAS_HARI);
 
-    const rC = (r) =>
-      ({
-        "High Risk": "bg-red-100 text-red-700",
-        "Moderate Risk": "bg-amber-100 text-amber-700",
-        "Low Risk": "bg-emerald-100 text-emerald-700",
-      })[r] || "bg-slate-100 text-slate-600";
-    const iL = (i) =>
-      ({
-        MMYS_ANAK: "MMYS Anak",
-        MMYS_REMAJA: "MMYS Remaja",
-        PHQ4: "PHQ-4",
-        EPDS: "EPDS",
-      })[i] || i;
-    const rows = data
-      .map(
-        (
-          d,
-        ) => `<div class="flex items-center justify-between gap-2 py-1.5 border-b border-slate-100 last:border-0">
-      <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-slate-400 text-[13px]">calendar_today</span>
-      <span class="text-[11px] text-slate-600">${formatTanggalID(d.tanggal_skrining)}</span>
-      <span class="text-[11px] font-medium">&middot; ${escHtml(iL(d.instrumen))}</span></div>
-      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${rC(d.tingkat_risiko)}">${escHtml(d.tingkat_risiko) || "-"}</span></div>`,
-      )
-      .join("");
-
     if (sisaHari > 0) {
       store.nikDiblokir = true;
       store.tanggalBolehSkrining = tglBoleh;
       nikStatus.value.html = `<div class="p-3 rounded-xl bg-rose-50 border-2 border-rose-200">
         <div class="flex items-center gap-2 mb-2"><span class="material-symbols-outlined text-rose-500 text-[18px]">block</span>
         <p class="text-xs font-bold text-rose-700">Skrining Belum Dapat Dilakukan</p></div>
-        <p class="text-[11px] text-rose-700 mb-2.5 leading-relaxed">Pasien <strong>${escHtml(data[0]?.nama_lengkap || "-")}</strong> sudah skrining pada <strong>${formatTanggalID(data[0].tanggal_skrining)}</strong>.<br>
-        Skrining berikutnya: <span class="font-bold text-rose-900 text-[13px]">${formatTanggalID(tglBoleh.toISOString())}</span>
+        <p class="text-[11px] text-rose-700 mb-2.5 leading-relaxed">NIK ini belum dapat digunakan untuk skrining ulang karena masih dalam masa jeda 90 hari.<br>
+        Dapat skrining kembali mulai: <span class="font-bold text-rose-900 text-[13px]">${formatTanggalID(tglBoleh.toISOString())}</span>
         <span class="ml-1 px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold text-[10px]">sisa ${sisaHari} hari</span></p>
-        <div class="bg-white rounded-lg p-2 border border-rose-100 mb-2">${rows}</div>
-        <p class="text-[10px] text-rose-500 italic">⚠ Skrining hanya dapat dilakukan 1x dalam 90 hari.</p></div>`;
+        <p class="text-[10px] text-rose-500 italic">Skrining hanya dapat dilakukan 1x dalam 90 hari.</p></div>`;
     } else {
       store.nikDiblokir = false;
       nikStatus.value.html = `<div class="p-3 rounded-xl bg-blue-50 border border-blue-200">
-        <div class="flex items-center gap-2 mb-2"><span class="material-symbols-outlined text-blue-500 text-[16px]">history</span>
-        <p class="text-xs font-bold text-blue-700">Pernah skrining <span class="text-blue-900">${data.length}x</span>
-        <span class="ml-2 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[10px]">✓ Boleh skrining kembali</span></p></div>
-        <div class="bg-white rounded-lg p-2 border border-blue-100">${rows}</div>
-        <p class="text-[10px] text-blue-500 mt-1.5 italic">Nama: ${escHtml(data[0]?.nama_lengkap || "-")}</p></div>`;
+        <div class="flex items-center gap-2"><span class="material-symbols-outlined text-blue-500 text-[16px]">check_circle</span>
+        <p class="text-xs font-bold text-blue-700">NIK dapat digunakan untuk skrining.</p></div>
+        <p class="text-[10px] text-blue-500 mt-1.5 italic">Detail riwayat hanya dapat dilihat oleh admin melalui dashboard.</p></div>`;
     }
   } catch {
     nikStatus.value.html = `<div class="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-500">

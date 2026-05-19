@@ -675,6 +675,9 @@ async function simpanKeSupabase() {
     msg: "Menyimpan data ke server...",
   };
 
+  // Hanya kirim data identitas + jawaban mentah ke server.
+  // Server (RPC simpan_skrining) akan menghitung skor, risiko, dan rekomendasi sendiri
+  // agar tidak bisa dimanipulasi dari client/devtools.
   const payload = {
     nama_lengkap: pasien.value.nama_lengkap,
     nik: pasien.value.nik,
@@ -692,17 +695,11 @@ async function simpanKeSupabase() {
     tanggal_skrining: pasien.value.tanggal_skrining,
     tempat_skrining: pasien.value.tempat_skrining,
     instrumen: store.instrumen,
-    is_valid: true,
     jawaban: store.answers,
-    skor_total: hasil.value.skor_total,
-    skor_detail: hasil.value.skor_detail,
-    tingkat_risiko: hasil.value.risk_level,
-    kesimpulan_klinis: hasil.value.kesimpulan_klinis,
-    rekomendasi: hasil.value.rekomendasi_list,
   };
 
   try {
-    const { error } = await db.from("screenings").insert(payload);
+    const { error } = await db.rpc('simpan_skrining', { payload_data: payload });
     if (error) throw error;
     
     // Tandai bahwa data sudah tersimpan di sesi ini

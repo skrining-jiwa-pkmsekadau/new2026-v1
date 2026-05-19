@@ -59,6 +59,14 @@ router.beforeEach(async (to, from, next) => {
     if (!session) {
       return next('/login')
     }
+
+    // Cek role admin via RPC is_admin
+    const { data: isAdmin, error } = await db.rpc('is_admin')
+    if (error || !isAdmin) {
+      // User login tapi bukan admin — redirect ke landing
+      await db.auth.signOut()
+      return next('/login')
+    }
   }
   next()
 })

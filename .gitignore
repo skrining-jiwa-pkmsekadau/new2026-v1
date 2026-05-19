@@ -2,3 +2,8 @@ node_modules/
 dist/
 .env
 .env.*
+
+# File test/debug — jangan commit
+test-*.js
+check-schema.*
+test.json

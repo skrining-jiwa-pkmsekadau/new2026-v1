@@ -924,6 +924,8 @@
           v-show="activeView === 'grafik'"
           class="flex flex-col gap-4 max-w-7xl mx-auto w-full"
         >
+          <GrafikMudah :data="dataUnik" />
+          <div v-if="false">
           <!-- Tab Navigation -->
           <div
             class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-2 w-full sm:w-auto self-start"
@@ -1700,6 +1702,7 @@
               </div>
             </div>
           </div>
+          </div>
         </div>
 
         <!-- ═══ LAPORAN VIEW ═══ -->
@@ -2410,12 +2413,12 @@ import { useRouter } from "vue-router";
 import { useDashboardStore } from "@/stores/dashboardStore";
 import { useSkriningStore } from "@/stores/skriningStore";
 import { useToast } from "@/composables/useToast";
-import { formatTanggalID } from "@/utils/helpers";
+import { escHtml, formatTanggalID } from "@/utils/helpers";
 import { INSTRUMEN_DATA } from "@/constants/instrumen";
 import { DATA_WILAYAH } from "@/constants/wilayah";
 import { hitungSkor } from "@/utils/skoring";
 import ModalKonfirmasi from "@/components/ModalKonfirmasi.vue";
-import { utils, writeFileXLSX } from "xlsx";
+import GrafikMudah from "@/components/GrafikMudah.vue";
 
 const router = useRouter();
 const store = useDashboardStore();
@@ -2962,6 +2965,30 @@ function instrBadgeCls(i) {
     (m[i] || "bg-slate-50 text-slate-500 border-slate-200")
   );
 }
+function excelSafe(value) {
+  if (value === null || value === undefined || value === "") return "-";
+  const text = String(value);
+  const first = text.trimStart().charAt(0);
+  return ["=", "+", "-", "@"].includes(first) ? `'${text}` : text;
+}
+function htmlCell(value) {
+  if (value === null || value === undefined || value === "") return "-";
+  return escHtml(value);
+}
+function sanitizePdfRow(row) {
+  return {
+    ...row,
+    tanggal_skrining: htmlCell(row.tanggal_skrining),
+    nama_lengkap: htmlCell(row.nama_lengkap),
+    nik: htmlCell(row.nik),
+    usia: htmlCell(row.usia),
+    jenis_kelamin: row.jenis_kelamin,
+    nama_sekolah: htmlCell(row.nama_sekolah),
+    instrumen: htmlCell(row.instrumen),
+    skor_total: htmlCell(row.skor_total),
+    tingkat_risiko: htmlCell(row.tingkat_risiko),
+  };
+}
 function riskBadgeCls(r) {
   const m = {
     "High Risk": "bg-red-50 text-red-600 border-red-200",
@@ -3037,60 +3064,40 @@ function exportExcel() {
     return;
   }
   try {
-    const rows = data.map((d, i) => ({
-      No: i + 1,
-      "Tanggal Skrining": d.tanggal_skrining || "-",
-      "Nama Lengkap": d.nama_lengkap || "-",
-      NIK: d.nik || "-",
-      Usia: d.usia || "-",
-      "Jenis Kelamin":
-        d.jenis_kelamin === "L"
-          ? "Laki-laki"
-          : d.jenis_kelamin === "P"
-            ? "Perempuan"
-            : "-",
-      "Sekolah/Kampus": d.nama_sekolah || "-",
-      "No HP": d.nomor_hp || "-",
-      Alamat: d.alamat || "-",
-      Kecamatan: d.kecamatan || "-",
-      Desa: d.desa || "-",
-      "Tempat Skrining": d.tempat_skrining || "-",
-      Instrumen: instrLabelText(d.instrumen),
-      "Skor Total": d.skor_total ?? "-",
-      "Tingkat Risiko": d.tingkat_risiko || "-",
-      "Kesimpulan Klinis": d.kesimpulan_klinis || "-",
-      Rekomendasi: Array.isArray(d.rekomendasi)
-        ? d.rekomendasi.join("; ")
-        : d.rekomendasi || "-",
-    }));
-    const ws = utils.json_to_sheet(rows);
-    ws["!cols"] = [
-      { wch: 5 },
-      { wch: 16 },
-      { wch: 28 },
-      { wch: 20 },
-      { wch: 6 },
-      { wch: 14 },
-      { wch: 25 },
-      { wch: 16 },
-      { wch: 30 },
-      { wch: 16 },
-      { wch: 16 },
-      { wch: 20 },
-      { wch: 14 },
-      { wch: 10 },
-      { wch: 16 },
-      { wch: 40 },
-      { wch: 50 },
-    ];
-    const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, "Data Skrining");
+    const headers = ["No","Tanggal Skrining","Nama Lengkap","NIK","Usia","Jenis Kelamin","Sekolah/Kampus","No HP","Alamat","Kecamatan","Desa","Tempat Skrining","Instrumen","Skor Total","Tingkat Risiko","Kesimpulan Klinis","Rekomendasi"];
+    const rows = data.map((d, i) => [
+      i + 1,
+      excelSafe(d.tanggal_skrining),
+      excelSafe(d.nama_lengkap),
+      excelSafe(d.nik),
+      d.usia ?? "-",
+      d.jenis_kelamin === "L" ? "Laki-laki" : d.jenis_kelamin === "P" ? "Perempuan" : "-",
+      excelSafe(d.nama_sekolah),
+      excelSafe(d.nomor_hp),
+      excelSafe(d.alamat),
+      excelSafe(d.kecamatan),
+      excelSafe(d.desa),
+      excelSafe(d.tempat_skrining),
+      excelSafe(instrLabelText(d.instrumen)),
+      d.skor_total ?? "-",
+      excelSafe(d.tingkat_risiko),
+      excelSafe(d.kesimpulan_klinis),
+      Array.isArray(d.rekomendasi) ? excelSafe(d.rekomendasi.join("; ")) : excelSafe(d.rekomendasi),
+    ]);
+    const csvContent = [headers, ...rows].map(r => r.map(c => `"${String(c ?? '').replace(/"/g, '""')}"`).join(",")).join("\n");
+    const BOM = "\uFEFF";
+    const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
     const today = new Date().toISOString().split("T")[0];
-    writeFileXLSX(wb, `SSJ_Sekadau_${today}.xlsx`);
-    showToast(`${data.length} data berhasil diexport ke Excel.`, "success");
+    a.href = url;
+    a.download = `SSJ_Sekadau_${today}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(`${data.length} data berhasil diexport ke CSV.`, "success");
   } catch (err) {
     console.error("[exportExcel]", err);
-    showToast("Gagal export Excel.", "error");
+    showToast("Gagal export.", "error");
   }
 }
 function buatSuratRujukan(d) {
@@ -3121,63 +3128,42 @@ function exportExcelLaporan() {
     return;
   }
   try {
-    const rows = data.map((d, i) => ({
-      No: i + 1,
-      "Tanggal Skrining": d.tanggal_skrining || "-",
-      "Nama Lengkap": d.nama_lengkap || "-",
-      NIK: d.nik || "-",
-      Usia: d.usia || "-",
-      "Jenis Kelamin":
-        d.jenis_kelamin === "L"
-          ? "Laki-laki"
-          : d.jenis_kelamin === "P"
-            ? "Perempuan"
-            : "-",
-      "Sekolah/Kampus": d.nama_sekolah || "-",
-      "No HP": d.nomor_hp || "-",
-      Alamat: d.alamat || "-",
-      Kecamatan: d.kecamatan || "-",
-      Desa: d.desa || "-",
-      "Tempat Skrining": d.tempat_skrining || "-",
-      Instrumen: instrLabelText(d.instrumen),
-      "Skor Total": d.skor_total ?? "-",
-      "Tingkat Risiko": d.tingkat_risiko || "-",
-      "Kesimpulan Klinis": d.kesimpulan_klinis || "-",
-      Rekomendasi: Array.isArray(d.rekomendasi)
-        ? d.rekomendasi.join("; ")
-        : d.rekomendasi || "-",
-    }));
-    const ws = utils.json_to_sheet(rows);
-    ws["!cols"] = [
-      { wch: 5 },
-      { wch: 16 },
-      { wch: 28 },
-      { wch: 20 },
-      { wch: 6 },
-      { wch: 14 },
-      { wch: 25 },
-      { wch: 16 },
-      { wch: 30 },
-      { wch: 16 },
-      { wch: 16 },
-      { wch: 20 },
-      { wch: 14 },
-      { wch: 10 },
-      { wch: 16 },
-      { wch: 40 },
-      { wch: 50 },
-    ];
-    const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, "Data Skrining");
-    const periodeLabel =
-      laporanDari.value && laporanSampai.value
-        ? `${laporanDari.value}_${laporanSampai.value}`
-        : "semua";
-    writeFileXLSX(wb, `SSJ_Laporan_${periodeLabel}.xlsx`);
-    showToast(`${data.length} data berhasil diexport ke Excel.`, "success");
+    const headers = ["No","Tanggal Skrining","Nama Lengkap","NIK","Usia","Jenis Kelamin","Sekolah/Kampus","No HP","Alamat","Kecamatan","Desa","Tempat Skrining","Instrumen","Skor Total","Tingkat Risiko","Kesimpulan Klinis","Rekomendasi"];
+    const rows = data.map((d, i) => [
+      i + 1,
+      excelSafe(d.tanggal_skrining),
+      excelSafe(d.nama_lengkap),
+      excelSafe(d.nik),
+      d.usia ?? "-",
+      d.jenis_kelamin === "L" ? "Laki-laki" : d.jenis_kelamin === "P" ? "Perempuan" : "-",
+      excelSafe(d.nama_sekolah),
+      excelSafe(d.nomor_hp),
+      excelSafe(d.alamat),
+      excelSafe(d.kecamatan),
+      excelSafe(d.desa),
+      excelSafe(d.tempat_skrining),
+      excelSafe(instrLabelText(d.instrumen)),
+      d.skor_total ?? "-",
+      excelSafe(d.tingkat_risiko),
+      excelSafe(d.kesimpulan_klinis),
+      Array.isArray(d.rekomendasi) ? excelSafe(d.rekomendasi.join("; ")) : excelSafe(d.rekomendasi),
+    ]);
+    const csvContent = [headers, ...rows].map(r => r.map(c => `"${String(c ?? '').replace(/"/g, '""')}"`).join(",")).join("\n");
+    const BOM = "\uFEFF";
+    const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const periodeLabel = laporanDari.value && laporanSampai.value
+      ? `${laporanDari.value}_${laporanSampai.value}`
+      : "semua";
+    a.href = url;
+    a.download = `SSJ_Laporan_${periodeLabel}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(`${data.length} data berhasil diexport ke CSV.`, "success");
   } catch (err) {
     console.error("[exportExcelLaporan]", err);
-    showToast("Gagal export Excel.", "error");
+    showToast("Gagal export.", "error");
   }
 }
 function exportPdfLaporan() {
@@ -3193,7 +3179,7 @@ function exportPdfLaporan() {
     laporanDari.value && laporanSampai.value
       ? `${laporanDari.value} s/d ${laporanSampai.value}`
       : "Semua Data";
-  const tableRows = data
+  const tableRows = data.map(sanitizePdfRow)
     .map(
       (d, i) =>
         `<tr><td>${i + 1}</td><td>${d.tanggal_skrining || "-"}</td><td>${d.nama_lengkap || "-"}</td><td>${d.nik || "-"}</td><td>${d.usia || "-"}</td><td>${d.jenis_kelamin === "L" ? "L" : "P"}</td><td>${d.nama_sekolah || "-"}</td><td>${instrLabelText(d.instrumen)}</td><td>${d.skor_total ?? "-"}</td><td>${d.tingkat_risiko || "-"}</td></tr>`,

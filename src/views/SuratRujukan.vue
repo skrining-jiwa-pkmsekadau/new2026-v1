@@ -151,7 +151,7 @@
               <div class="border-b-[3px] border-black pb-2">
                 <div class="flex items-center gap-3 px-1">
                   <img
-                    src="/sekadau.png"
+                    src="/sekadau.svg"
                     alt="Logo Sekadau"
                     class="w-[65px] h-auto shrink-0 mix-blend-multiply"
                   />

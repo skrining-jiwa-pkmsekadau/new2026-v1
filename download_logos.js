@@ -31,6 +31,7 @@ const dl = (url, dest) => {
 };
 
 Promise.all([
-  dl('https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Lambang_Kabupaten_Sekadau.png/800px-Lambang_Kabupaten_Sekadau.png', 'public/sekadau.png'),
-  dl('https://upload.wikimedia.org/wikipedia/commons/b/bf/Logo_Bakti_Husada.svg', 'public/kesehatan.svg')
+  dl('https://upload.wikimedia.org/wikipedia/commons/1/15/Lambang_Kabupaten_Sekadau.png', 'public/sekadau.png'),
+  dl('https://upload.wikimedia.org/wikipedia/commons/b/bf/Logo_Bakti_Husada.svg', 'public/kesehatan.svg'),
+  dl('https://upload.wikimedia.org/wikipedia/commons/6/6d/Logo_of_the_Ministry_of_Health_of_the_Republic_of_Indonesia.svg', 'public/kemenkes.svg')
 ]).then(() => console.log('Logos successfully downloaded.')).catch(console.error);
