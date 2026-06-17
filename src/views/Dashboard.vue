@@ -2120,7 +2120,7 @@
                 Kesimpulan Klinis
               </p>
               <p class="text-sm text-slate-700 leading-relaxed">
-                {{ selectedDetail.kesimpulan_klinis || "-" }}
+                {{ detailKesimpulan }}
               </p>
             </div>
           </div>
@@ -2295,7 +2295,7 @@
                       <p
                         class="text-[11px] text-slate-600 leading-tight border-l-2 border-slate-200 pl-2 mt-2"
                       >
-                        {{ r.kesimpulan_klinis || "-" }}
+                        {{ r.kesimpulan_klinis || (hitungSkor(r.instrumen, r.jawaban)?.kesimpulan_klinis) || "-" }}
                       </p>
                     </div>
                     <span
@@ -2419,6 +2419,7 @@ import { DATA_WILAYAH } from "@/constants/wilayah";
 import { hitungSkor } from "@/utils/skoring";
 import ModalKonfirmasi from "@/components/ModalKonfirmasi.vue";
 import GrafikMudah from "@/components/GrafikMudah.vue";
+import * as XLSX from "xlsx";
 
 const router = useRouter();
 const store = useDashboardStore();
@@ -2894,11 +2895,21 @@ const detailJawaban = computed(() => {
     return { teks: s.teks, jawaban: teks };
   });
 });
-const detailRekomendasi = computed(() =>
-  selectedDetail.value && Array.isArray(selectedDetail.value.rekomendasi)
-    ? selectedDetail.value.rekomendasi
-    : [],
-);
+const detailRekomendasi = computed(() => {
+  if (!selectedDetail.value) return [];
+  if (Array.isArray(selectedDetail.value.rekomendasi) && selectedDetail.value.rekomendasi.length > 0) {
+    return selectedDetail.value.rekomendasi;
+  }
+  return detailLengkap.value?.rekomendasi_list || [];
+});
+
+const detailKesimpulan = computed(() => {
+  if (!selectedDetail.value) return "-";
+  if (selectedDetail.value.kesimpulan_klinis && selectedDetail.value.kesimpulan_klinis !== "") {
+    return selectedDetail.value.kesimpulan_klinis;
+  }
+  return detailLengkap.value?.kesimpulan_klinis || "-";
+});
 
 // ── Score Detail Helpers ──
 function isMMYS(i) {
@@ -3065,36 +3076,55 @@ function exportExcel() {
   }
   try {
     const headers = ["No","Tanggal Skrining","Nama Lengkap","NIK","Usia","Jenis Kelamin","Sekolah/Kampus","No HP","Alamat","Kecamatan","Desa","Tempat Skrining","Instrumen","Skor Total","Tingkat Risiko","Kesimpulan Klinis","Rekomendasi"];
-    const rows = data.map((d, i) => [
-      i + 1,
-      excelSafe(d.tanggal_skrining),
-      excelSafe(d.nama_lengkap),
-      excelSafe(d.nik),
-      d.usia ?? "-",
-      d.jenis_kelamin === "L" ? "Laki-laki" : d.jenis_kelamin === "P" ? "Perempuan" : "-",
-      excelSafe(d.nama_sekolah),
-      excelSafe(d.nomor_hp),
-      excelSafe(d.alamat),
-      excelSafe(d.kecamatan),
-      excelSafe(d.desa),
-      excelSafe(d.tempat_skrining),
-      excelSafe(instrLabelText(d.instrumen)),
-      d.skor_total ?? "-",
-      excelSafe(d.tingkat_risiko),
-      excelSafe(d.kesimpulan_klinis),
-      Array.isArray(d.rekomendasi) ? excelSafe(d.rekomendasi.join("; ")) : excelSafe(d.rekomendasi),
-    ]);
-    const csvContent = [headers, ...rows].map(r => r.map(c => `"${String(c ?? '').replace(/"/g, '""')}"`).join(",")).join("\n");
-    const BOM = "\uFEFF";
-    const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const rows = data.map((d, i) => {
+      const calc = hitungSkor(d.instrumen, d.jawaban) || {};
+      const kesimpulan = d.kesimpulan_klinis || calc.kesimpulan_klinis || "-";
+      let rekom = d.rekomendasi;
+      if (!rekom || (Array.isArray(rekom) && rekom.length === 0)) {
+        rekom = calc.rekomendasi_list || [];
+      }
+      const rekomStr = Array.isArray(rekom) ? rekom.join("; ") : rekom;
+
+      return [
+        i + 1,
+        d.tanggal_skrining || "-",
+        d.nama_lengkap || "-",
+        d.nik || "-",
+        d.usia ?? "-",
+        d.jenis_kelamin === "L" ? "Laki-laki" : d.jenis_kelamin === "P" ? "Perempuan" : "-",
+        d.nama_sekolah || "-",
+        d.nomor_hp || "-",
+        d.alamat || "-",
+        d.kecamatan || "-",
+        d.desa || "-",
+        d.tempat_skrining || "-",
+        instrLabelText(d.instrumen) || "-",
+        d.skor_total ?? "-",
+        d.tingkat_risiko || "-",
+        kesimpulan,
+        rekomStr,
+      ];
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    // Optional: auto-adjust columns widths
+    const colWidths = headers.map(h => ({ wch: Math.max(10, h.length) }));
+    rows.forEach(row => {
+      row.forEach((val, colIdx) => {
+        const len = String(val).length;
+        if (len > colWidths[colIdx].wch) {
+           colWidths[colIdx].wch = Math.min(len, 60); // Cap width to 60
+        }
+      });
+    });
+    worksheet['!cols'] = colWidths;
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Data Skrining");
     const today = new Date().toISOString().split("T")[0];
-    a.href = url;
-    a.download = `SSJ_Sekadau_${today}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast(`${data.length} data berhasil diexport ke CSV.`, "success");
+    XLSX.writeFile(workbook, `SSJ_Sekadau_${today}.xlsx`);
+    
+    showToast(`${data.length} data berhasil diexport ke Excel.`, "success");
   } catch (err) {
     showToast("Gagal export.", "error");
   }
@@ -3128,38 +3158,57 @@ function exportExcelLaporan() {
   }
   try {
     const headers = ["No","Tanggal Skrining","Nama Lengkap","NIK","Usia","Jenis Kelamin","Sekolah/Kampus","No HP","Alamat","Kecamatan","Desa","Tempat Skrining","Instrumen","Skor Total","Tingkat Risiko","Kesimpulan Klinis","Rekomendasi"];
-    const rows = data.map((d, i) => [
-      i + 1,
-      excelSafe(d.tanggal_skrining),
-      excelSafe(d.nama_lengkap),
-      excelSafe(d.nik),
-      d.usia ?? "-",
-      d.jenis_kelamin === "L" ? "Laki-laki" : d.jenis_kelamin === "P" ? "Perempuan" : "-",
-      excelSafe(d.nama_sekolah),
-      excelSafe(d.nomor_hp),
-      excelSafe(d.alamat),
-      excelSafe(d.kecamatan),
-      excelSafe(d.desa),
-      excelSafe(d.tempat_skrining),
-      excelSafe(instrLabelText(d.instrumen)),
-      d.skor_total ?? "-",
-      excelSafe(d.tingkat_risiko),
-      excelSafe(d.kesimpulan_klinis),
-      Array.isArray(d.rekomendasi) ? excelSafe(d.rekomendasi.join("; ")) : excelSafe(d.rekomendasi),
-    ]);
-    const csvContent = [headers, ...rows].map(r => r.map(c => `"${String(c ?? '').replace(/"/g, '""')}"`).join(",")).join("\n");
-    const BOM = "\uFEFF";
-    const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const rows = data.map((d, i) => {
+      const calc = hitungSkor(d.instrumen, d.jawaban) || {};
+      const kesimpulan = d.kesimpulan_klinis || calc.kesimpulan_klinis || "-";
+      let rekom = d.rekomendasi;
+      if (!rekom || (Array.isArray(rekom) && rekom.length === 0)) {
+        rekom = calc.rekomendasi_list || [];
+      }
+      const rekomStr = Array.isArray(rekom) ? rekom.join("; ") : rekom;
+
+      return [
+        i + 1,
+        d.tanggal_skrining || "-",
+        d.nama_lengkap || "-",
+        d.nik || "-",
+        d.usia ?? "-",
+        d.jenis_kelamin === "L" ? "Laki-laki" : d.jenis_kelamin === "P" ? "Perempuan" : "-",
+        d.nama_sekolah || "-",
+        d.nomor_hp || "-",
+        d.alamat || "-",
+        d.kecamatan || "-",
+        d.desa || "-",
+        d.tempat_skrining || "-",
+        instrLabelText(d.instrumen) || "-",
+        d.skor_total ?? "-",
+        d.tingkat_risiko || "-",
+        kesimpulan,
+        rekomStr,
+      ];
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    // Optional: auto-adjust columns widths
+    const colWidths = headers.map(h => ({ wch: Math.max(10, h.length) }));
+    rows.forEach(row => {
+      row.forEach((val, colIdx) => {
+        const len = String(val).length;
+        if (len > colWidths[colIdx].wch) {
+           colWidths[colIdx].wch = Math.min(len, 60); // Cap width to 60
+        }
+      });
+    });
+    worksheet['!cols'] = colWidths;
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Data Skrining");
     const periodeLabel = laporanDari.value && laporanSampai.value
       ? `${laporanDari.value}_${laporanSampai.value}`
       : "semua";
-    a.href = url;
-    a.download = `SSJ_Laporan_${periodeLabel}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast(`${data.length} data berhasil diexport ke CSV.`, "success");
+    XLSX.writeFile(workbook, `SSJ_Laporan_${periodeLabel}.xlsx`);
+    
+    showToast(`${data.length} data berhasil diexport ke Excel.`, "success");
   } catch (err) {
     showToast("Gagal export.", "error");
   }

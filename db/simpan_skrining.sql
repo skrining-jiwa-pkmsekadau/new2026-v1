@@ -61,9 +61,18 @@ BEGIN
     END IF;
 
     -- Ambil level tertinggi
-    IF v_hasil_a = 'BERAT' OR v_hasil_b = 'BERAT' THEN v_tingkat_risiko := 'High Risk';
-    ELSIF v_hasil_a = 'RINGAN' OR v_hasil_b = 'RINGAN' THEN v_tingkat_risiko := 'Moderate Risk';
-    ELSE v_tingkat_risiko := 'Low Risk';
+    IF v_hasil_a = 'BERAT' OR v_hasil_b = 'BERAT' THEN 
+      v_tingkat_risiko := 'High Risk';
+      v_kesimpulan_klinis := 'Hasil skrining menunjukkan kemungkinan gejala kecemasan dan/atau depresi berat. Perlu penanganan segera.';
+      v_rekomendasi := '["Konseling awal segera oleh Perawat atau Bidan yang bersifat suportif.", "Penegakan diagnosis keperawatan dan asuhan keperawatan jiwa pada anak dan remaja oleh Perawat.", "Tatalaksana medis segera oleh Dokter Puskesmas.", "Assessment dan tatalaksana psikologis oleh Psikolog Klinis.", "Pemeriksaan lanjut untuk menegakkan diagnosa awal oleh Dokter/Psikolog Klinis.", "Lakukan evaluasi setelah 3 bulan. Rujuk ke Rumah Sakit (FKTL) yang memiliki fasilitas kesehatan jiwa/tumbuh kembang jika tidak ada perbaikan.", "Rujuk SEGERA jika ada: perilaku melukai diri/dorongan bunuh diri, luka/memar fisik, gangguan tumbuh kembang, atau kondisi medis berat."]'::JSONB;
+    ELSIF v_hasil_a = 'RINGAN' OR v_hasil_b = 'RINGAN' THEN 
+      v_tingkat_risiko := 'Moderate Risk';
+      v_kesimpulan_klinis := 'Hasil skrining menunjukkan kemungkinan gejala kecemasan dan/atau depresi ringan yang perlu ditindaklanjuti.';
+      v_rekomendasi := '["Konseling awal oleh Perawat atau Bidan yang bersifat suportif untuk mengidentifikasi dan membantu mengurangi keluhan.", "Penegakan diagnosis keperawatan dan pemberian asuhan keperawatan jiwa pada anak dan remaja oleh Perawat.", "Tatalaksana medis oleh Dokter Puskesmas sesuai kompetensi.", "Assessment dan tatalaksana psikologis oleh Psikolog Klinis (jika tersedia).", "Pemeriksaan lanjut untuk menegakkan diagnosa awal oleh Dokter/Psikolog Klinis."]'::JSONB;
+    ELSE 
+      v_tingkat_risiko := 'Low Risk';
+      v_kesimpulan_klinis := 'Hasil skrining tidak menunjukkan kemungkinan gejala kecemasan maupun depresi yang signifikan.';
+      v_rekomendasi := '["Edukasi kesehatan jiwa: definisi kesehatan jiwa, pentingnya menjaga kesehatan mental, dan sistem deteksi mandiri.", "Penguatan faktor protektif: dorong keterlibatan dalam kegiatan ekstrakurikuler, hobi positif, dan relasi sosial yang sehat.", "Edukasi P3LP (Pertolongan Pertama pada Luka Psikologis) kepada orang tua/pengasuh.", "Edukasi pengasuhan yang sehat jiwa kepada orang tua/pengasuh.", "Lakukan pemeriksaan kesehatan jiwa berkala minimal 1 kali per tahun."]'::JSONB;
     END IF;
 
     v_skor_detail := jsonb_build_object('skor_A', v_skor_a, 'skor_B', v_skor_b, 'hasil_A', v_hasil_a, 'hasil_B', v_hasil_b);
@@ -74,10 +83,22 @@ BEGIN
     v_gad2 := (v_jawaban->2->>'value')::INT + (v_jawaban->3->>'value')::INT;
     v_skor_total := v_phq2 + v_gad2;
 
-    IF v_phq2 >= 3 AND v_gad2 >= 3 THEN v_tingkat_risiko := 'High Risk';
-    ELSIF v_phq2 >= 3 THEN v_tingkat_risiko := 'Moderate Risk';
-    ELSIF v_gad2 >= 3 THEN v_tingkat_risiko := 'Moderate Risk';
-    ELSE v_tingkat_risiko := 'Low Risk';
+    IF v_phq2 >= 3 AND v_gad2 >= 3 THEN 
+      v_tingkat_risiko := 'High Risk';
+      v_kesimpulan_klinis := 'Hasil skrining PHQ-4 menunjukkan kemungkinan gejala depresi DAN kecemasan secara bersamaan (PHQ-2 ≥ 3 dan GAD-2 ≥ 3). Perlu penanganan segera.';
+      v_rekomendasi := '["Konseling awal segera oleh Perawat atau Bidan yang bersifat suportif.", "Pemeriksaan kesehatan jiwa menyeluruh oleh Dokter atau Psikolog Klinis.", "Tatalaksana komprehensif sesuai kompetensi tenaga medis di Puskesmas.", "Rujuk ke FKTL jika: depresi berat, indikasi membahayakan diri/orang lain, atau gejala kecemasan tidak membaik lebih dari 1 bulan."]'::JSONB;
+    ELSIF v_phq2 >= 3 THEN 
+      v_tingkat_risiko := 'Moderate Risk';
+      v_kesimpulan_klinis := 'Hasil skrining PHQ-4 menunjukkan kemungkinan adanya gejala depresi (skor PHQ-2 ≥ 3). Diperlukan pemeriksaan dan tindak lanjut lebih lanjut.';
+      v_rekomendasi := '["Konseling awal oleh Perawat atau Bidan yang bersifat suportif.", "Pemeriksaan kesehatan jiwa oleh Dokter atau Psikolog Klinis untuk menegakkan diagnosis medis.", "Tatalaksana sesuai kompetensi tenaga medis dan kesehatan di Puskesmas.", "Rujuk ke FKTL jika: depresi berat atau ada indikasi membahayakan diri sendiri atau orang lain."]'::JSONB;
+    ELSIF v_gad2 >= 3 THEN 
+      v_tingkat_risiko := 'Moderate Risk';
+      v_kesimpulan_klinis := 'Hasil skrining PHQ-4 menunjukkan kemungkinan adanya gejala kecemasan (skor GAD-2 ≥ 3). Diperlukan pemeriksaan dan tindak lanjut lebih lanjut.';
+      v_rekomendasi := '["Konseling awal oleh Perawat atau Bidan yang bersifat suportif.", "Pemeriksaan kesehatan jiwa oleh Dokter atau Psikolog Klinis untuk menegakkan diagnosis medis.", "Tatalaksana sesuai kompetensi tenaga medis dan kesehatan di Puskesmas.", "Rujuk ke FKTL jika: gejala tidak membaik lebih dari 1 bulan pasca konseling atau ada indikasi ketergantungan obat cemas."]'::JSONB;
+    ELSE 
+      v_tingkat_risiko := 'Low Risk';
+      v_kesimpulan_klinis := 'Hasil skrining PHQ-4 tidak menunjukkan gejala depresi maupun kecemasan yang signifikan.';
+      v_rekomendasi := '["Edukasi kesehatan jiwa: tanda sehat jiwa dan faktor protektif.", "Ajarkan teknik manajemen stres dan coping stress yang sehat.", "Edukasi P3LP (Pertolongan Pertama pada Luka Psikologis).", "Pertahankan gaya hidup sehat: olahraga teratur, tidur cukup, dan hubungan sosial yang positif."]'::JSONB;
     END IF;
 
     v_skor_detail := jsonb_build_object('skor_phq2', v_phq2, 'skor_gad2', v_gad2);
@@ -97,9 +118,18 @@ BEGIN
 
     v_skor_total := v_total_epds;
 
-    IF v_total_epds >= 13 OR v_flag_e10 THEN v_tingkat_risiko := 'High Risk';
-    ELSIF v_total_epds >= 9 THEN v_tingkat_risiko := 'Moderate Risk';
-    ELSE v_tingkat_risiko := 'Low Risk';
+    IF v_total_epds >= 13 OR v_flag_e10 THEN 
+      v_tingkat_risiko := 'High Risk';
+      v_kesimpulan_klinis := 'Hasil skrining EPDS mengindikasikan kemungkinan gejala depresi pada ibu hamil/nifas (skor ≥ 13 atau Q10 positif). Diperlukan penanganan segera.';
+      v_rekomendasi := '["Konseling awal segera oleh Perawat atau Bidan yang bersifat suportif.", "Pemeriksaan kesehatan jiwa untuk menegakkan diagnosis oleh Dokter atau Psikolog Klinis.", "Tatalaksana komprehensif sesuai kompetensi tenaga medis dan kesehatan di Puskesmas.", "Segera rujuk ke FKTL jika ada indikasi membahayakan diri sendiri atau orang lain.", "Pastikan pendampingan intensif dari keluarga terdekat selama proses pemulihan."]'::JSONB;
+    ELSIF v_total_epds >= 9 THEN 
+      v_tingkat_risiko := 'Moderate Risk';
+      v_kesimpulan_klinis := 'Skor EPDS 9–12 menunjukkan gejala yang perlu dipantau. Lakukan skrining ulang pada kunjungan ANC berikutnya.';
+      v_rekomendasi := '["Berikan edukasi kesehatan jiwa: tanda sehat jiwa, faktor protektif, latihan manajemen stres.", "Lakukan skrining ulang EPDS pada kunjungan ANC berikutnya.", "Pantau kondisi ibu secara berkala oleh Bidan atau Perawat.", "Tingkatkan dukungan sosial dan emosional dari keluarga terdekat."]'::JSONB;
+    ELSE 
+      v_tingkat_risiko := 'Low Risk';
+      v_kesimpulan_klinis := 'Hasil skrining EPDS tidak menunjukkan gejala depresi yang signifikan (skor 0–8).';
+      v_rekomendasi := '["Edukasi kesehatan jiwa: tanda sehat jiwa pada ibu dan faktor protektif kesehatan jiwa.", "Latihan manajemen stres dan coping stress yang sehat selama masa kehamilan/nifas.", "Edukasi pengasuhan positif dan perawatan bayi yang menyenangkan.", "Jaga dukungan sosial dari keluarga dan tenaga kesehatan."]'::JSONB;
     END IF;
 
     v_skor_detail := jsonb_build_object('flag_e10', v_flag_e10);
@@ -137,8 +167,8 @@ BEGIN
     v_skor_total,
     v_skor_detail,
     v_tingkat_risiko,
-    '', -- kesimpulan_klinis bisa di-generate dari tingkat_risiko di query dashboard
-    '[]'::JSONB -- rekomendasi juga
+    v_kesimpulan_klinis,
+    v_rekomendasi
   );
 END;
 $$;
