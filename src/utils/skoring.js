@@ -81,21 +81,20 @@ export function skorPHQ4(answers) {
 export function skorEPDS(answers) {
   const total = answers.reduce((s, a) => s + a.value, 0)
 
-  // Flag Q10: Jawaban selain "Tidak pernah" (value > 0) → risiko bunuh diri
-  // Sesuai pedoman PDF: setiap jawaban Q10 > 0 dianggap berisiko
+  // Flag Q10 sesuai panduan: hanya jawaban "Ya, agak sering" yang memicu tindak lanjut khusus.
   const jwbE10  = answers.find((a) => a.id === 'E10')
-  const flagE10 = jwbE10 ? jwbE10.value > 0 : false
+  const flagE10 = jwbE10 ? jwbE10.value === 3 : false
 
   let tingkatRisiko
   if (total >= 13 || flagE10) tingkatRisiko = 'DEPRESI'
-  else if (total >= 9)        tingkatRisiko = 'PERLU_MONITORING'
   else                        tingkatRisiko = 'TIDAK_ADA'
 
   return {
     skor_total: total,
-    skor_detail: { flag_e10: flagE10 },
+    skor_detail: { flag_e10: flagE10, perlu_skrining_ulang: total >= 9 && total <= 12 && !flagE10 },
     tingkat_risiko: tingkatRisiko,
     flag_e10: flagE10,
+    perlu_skrining_ulang: total >= 9 && total <= 12 && !flagE10,
   }
 }
 
@@ -244,30 +243,13 @@ export const HASIL_INTERPRETASI = {
       icon: 'check_circle',
       icon_cls: 'text-emerald-500',
       urgent: false,
-      kesimpulan: 'Hasil skrining EPDS tidak menunjukkan gejala depresi yang signifikan (skor 0–8).',
+      kesimpulan: 'Hasil skrining EPDS tidak menunjukkan gejala depresi yang signifikan (skor 0-12).',
       pelaksana: ['Dokter', 'Psikolog Klinis', 'Perawat', 'Bidan'],
       rekomendasi: [
         'Edukasi kesehatan jiwa: tanda sehat jiwa pada ibu dan faktor protektif kesehatan jiwa.',
         'Latihan manajemen stres dan coping stress yang sehat selama masa kehamilan/nifas.',
         'Edukasi pengasuhan positif dan perawatan bayi yang menyenangkan.',
         'Jaga dukungan sosial dari keluarga dan tenaga kesehatan.',
-      ],
-    },
-    PERLU_MONITORING: {
-      badge: 'Perlu Pemantauan',
-      badge_cls: 'bg-amber-50 text-amber-700 border-amber-200',
-      risk_level: 'Moderate Risk',
-      risk_cls: 'text-amber-600 bg-amber-50',
-      icon: 'visibility',
-      icon_cls: 'text-amber-500',
-      urgent: false,
-      kesimpulan: 'Skor EPDS 9–12 menunjukkan gejala yang perlu dipantau. Lakukan skrining ulang pada kunjungan ANC berikutnya.',
-      pelaksana: ['Dokter', 'Psikolog Klinis', 'Perawat', 'Bidan'],
-      rekomendasi: [
-        'Berikan edukasi kesehatan jiwa: tanda sehat jiwa, faktor protektif, latihan manajemen stres.',
-        'Lakukan skrining ulang EPDS pada kunjungan ANC berikutnya.',
-        'Pantau kondisi ibu secara berkala oleh Bidan atau Perawat.',
-        'Tingkatkan dukungan sosial dan emosional dari keluarga terdekat.',
       ],
     },
     DEPRESI: {
@@ -278,7 +260,7 @@ export const HASIL_INTERPRETASI = {
       icon: 'emergency',
       icon_cls: 'text-red-500',
       urgent: true,
-      kesimpulan: 'Hasil skrining EPDS mengindikasikan kemungkinan gejala depresi pada ibu hamil/nifas (skor ≥ 13 atau Q10 positif). Diperlukan penanganan segera.',
+      kesimpulan: 'Hasil skrining EPDS mengindikasikan kemungkinan gejala depresi pada ibu hamil/nifas (skor >= 13 atau jawaban "Ya, agak sering" pada pertanyaan No.10). Diperlukan penanganan segera.',
       pelaksana: ['Dokter', 'Psikolog Klinis', 'Perawat', 'Bidan'],
       rekomendasi: [
         'Konseling awal segera oleh Perawat atau Bidan yang bersifat suportif.',
@@ -326,12 +308,20 @@ export function hitungSkor(instrumen, answers) {
     return null
   }
 
+  const rekomendasi = [...(interp.rekomendasi || [])]
+  let kesimpulan = interp.kesimpulan
+
+  if (instrumen === 'EPDS' && skorData.perlu_skrining_ulang) {
+    kesimpulan = 'Hasil skrining EPDS tidak menunjukkan gejala depresi yang signifikan (skor 0-12). Karena skor berada pada rentang 9-12, lakukan skrining ulang pada kunjungan ANC berikutnya.'
+    rekomendasi.push('Skor 9-12: lakukan skrining ulang pada kunjungan ANC berikutnya.')
+  }
+
   return {
     ...skorData,
     ...interp,
     instrumen,
-    kesimpulan_klinis: interp.kesimpulan,
-    rekomendasi_list: interp.rekomendasi,
+    kesimpulan_klinis: kesimpulan,
+    rekomendasi_list: rekomendasi,
     pelaksana_list: interp.pelaksana,
   }
 }

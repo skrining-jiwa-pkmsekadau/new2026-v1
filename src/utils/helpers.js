@@ -16,14 +16,15 @@ export function hitungUsia(tglLahir) {
   const skrg = new Date()
   let usia = skrg.getFullYear() - lahir.getFullYear()
 
+  // Usia baru dianggap bertambah H+1 setelah tanggal ulang tahun.
   if (
     skrg.getMonth() < lahir.getMonth() ||
-    (skrg.getMonth() === lahir.getMonth() && skrg.getDate() < lahir.getDate())
+    (skrg.getMonth() === lahir.getMonth() && skrg.getDate() <= lahir.getDate())
   ) {
     usia--
   }
 
-  return usia
+  return Math.max(0, usia)
 }
 
 /**

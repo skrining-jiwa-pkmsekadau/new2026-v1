@@ -1,6 +1,23 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { db } from '@/services/supabase'
+import { hitungSkor } from '@/utils/skoring'
+
+function normalisasiHasilPanduan(record) {
+  if (!Array.isArray(record?.jawaban)) return record
+
+  const hasil = hitungSkor(record.instrumen, record.jawaban)
+  if (!hasil) return record
+
+  return {
+    ...record,
+    skor_total: hasil.skor_total,
+    skor_detail: hasil.skor_detail,
+    tingkat_risiko: hasil.risk_level,
+    kesimpulan_klinis: hasil.kesimpulan_klinis,
+    rekomendasi: hasil.rekomendasi_list,
+  }
+}
 
 export const useDashboardStore = defineStore('dashboard', () => {
   // ── State ──
@@ -64,7 +81,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
         .eq('is_valid', true)
         .order('tanggal_skrining', { ascending: false })
       if (error) throw error
-      semuaData.value  = data || []
+      semuaData.value  = (data || []).map(normalisasiHasilPanduan)
       dataFilter.value = [...semuaData.value]
       halamanAktif.value = 1
     } catch (err) {

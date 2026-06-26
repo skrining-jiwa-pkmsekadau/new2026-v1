@@ -408,7 +408,7 @@
                     >warning</span
                   >
                   <p class="text-xs text-rose-700 font-medium leading-relaxed">
-                    ⚠️ Jawaban pada pertanyaan No.10 menunjukkan kemungkinan
+                    ⚠️ Jawaban "Ya, agak sering" pada pertanyaan No.10 menunjukkan kemungkinan
                     risiko mencelakai diri sendiri — diperlukan tindak lanjut
                     segera. Rujuk ke FKTL jika ada indikasi membahayakan diri.
                   </p>
@@ -635,7 +635,6 @@ const riskInfo = computed(() => {
 
 const epdsBarColor = computed(() => {
   if (hasil.value.skor_total >= 13) return "bg-red-400";
-  if (hasil.value.skor_total >= 9) return "bg-amber-400";
   return "bg-emerald-400";
 });
 

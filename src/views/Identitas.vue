@@ -664,6 +664,7 @@ import { useSkriningStore } from "@/stores/skriningStore";
 import { useToast } from "@/composables/useToast";
 import { DATA_WILAYAH } from "@/constants/wilayah";
 import { INSTRUMEN_INFO } from "@/constants/instrumen";
+import { hitungSkor } from "@/utils/skoring";
 import {
   hitungUsia,
   nentukanInstrumen,
@@ -866,6 +867,39 @@ async function cekRiwayatNIK(nik) {
     const sisaHari = BATAS_HARI - selisihHari;
     const tglBoleh = new Date(tglTerakhir);
     tglBoleh.setDate(tglTerakhir.getDate() + BATAS_HARI);
+
+    const riskPanduan = (d) => {
+      if (Array.isArray(d?.jawaban)) {
+        const hasil = hitungSkor(d.instrumen, d.jawaban);
+        if (hasil?.risk_level) return hasil.risk_level;
+      }
+      return d.tingkat_risiko || "-";
+    };
+    const rC = (r) =>
+      ({
+        "High Risk": "bg-red-100 text-red-700",
+        "Moderate Risk": "bg-amber-100 text-amber-700",
+        "Low Risk": "bg-emerald-100 text-emerald-700",
+      })[r] || "bg-slate-100 text-slate-600";
+    const iL = (i) =>
+      ({
+        MMYS_ANAK: "MMYS Anak",
+        MMYS_REMAJA: "MMYS Remaja",
+        PHQ4: "PHQ-4",
+        EPDS: "EPDS",
+      })[i] || i;
+    const rows = data
+      .map(
+        (
+          d,
+        ) => `<div class="flex items-center justify-between gap-2 py-1.5 border-b border-slate-100 last:border-0">
+      <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-slate-400 text-[13px]">calendar_today</span>
+      <span class="text-[11px] text-slate-600">${formatTanggalID(d.tanggal_skrining)}</span>
+      <span class="text-[11px] font-medium">&middot; ${escHtml(iL(d.instrumen))}</span></div>
+      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${rC(riskPanduan(d))}">${escHtml(riskPanduan(d))}</span></div>`,
+      )
+      .join("");
+
 
     if (sisaHari > 0) {
       store.nikDiblokir = true;

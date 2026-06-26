@@ -833,9 +833,7 @@
                       }}</span>
                     </td>
                     <td class="px-4 py-3">
-                      <span :class="riskBadgeCls(d.tingkat_risiko)">{{
-                        d.tingkat_risiko || "-"
-                      }}</span>
+                      <span :class="riskBadgeCls(risikoExport(d))">{{ risikoExport(d) }}</span>
                     </td>
                     <td
                       class="px-4 py-3 text-xs text-slate-500 hidden lg:table-cell max-w-[140px] truncate"
@@ -1992,12 +1990,12 @@
                 <span
                   :class="[
                     'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border',
-                    riskBadgeLgCls(selectedDetail.tingkat_risiko),
+                    riskBadgeLgCls(selectedRisikoPanduan),
                   ]"
                   ><span class="material-symbols-outlined text-[14px]">{{
-                    riskIconName(selectedDetail.tingkat_risiko)
+                    riskIconName(selectedRisikoPanduan)
                   }}</span
-                  >{{ selectedDetail.tingkat_risiko || "-" }}</span
+                  >{{ selectedRisikoPanduan }}</span
                 >
               </div>
             </div>
@@ -2110,7 +2108,7 @@
                   >warning</span
                 >
                 <p class="text-[11px] text-rose-700 font-medium">
-                  Jawaban pada soal No.10 menunjukkan kemungkinan risiko
+                  Jawaban "Ya, agak sering" pada soal No.10 menunjukkan kemungkinan risiko
                   mencelakai diri
                 </p>
               </div>
@@ -2320,7 +2318,7 @@
           class="px-5 py-4 border-t border-slate-100 bg-slate-50 sm:rounded-b-2xl shrink-0 flex gap-3"
         >
           <button
-            v-if="selectedDetail?.tingkat_risiko === 'High Risk' || selectedDetail?.tingkat_risiko === 'Moderate Risk'"
+            v-if="selectedRisikoPanduan === 'High Risk' || selectedRisikoPanduan === 'Moderate Risk'"
             @click="buatSuratRujukan(selectedDetail)"
             class="flex-1 py-2.5 rounded-xl border border-red-200 bg-red-50 text-red-600 font-bold text-xs transition-all flex items-center justify-center gap-1.5 hover:bg-red-100 shadow-sm"
           >
@@ -2897,19 +2895,20 @@ const detailJawaban = computed(() => {
 });
 const detailRekomendasi = computed(() => {
   if (!selectedDetail.value) return [];
-  if (Array.isArray(selectedDetail.value.rekomendasi) && selectedDetail.value.rekomendasi.length > 0) {
-    return selectedDetail.value.rekomendasi;
-  }
-  return detailLengkap.value?.rekomendasi_list || [];
+  if (Array.isArray(detailLengkap.value?.rekomendasi_list)) return detailLengkap.value.rekomendasi_list;
+  return Array.isArray(selectedDetail.value.rekomendasi)
+    ? selectedDetail.value.rekomendasi
+    : [];
 });
 
 const detailKesimpulan = computed(() => {
   if (!selectedDetail.value) return "-";
-  if (selectedDetail.value.kesimpulan_klinis && selectedDetail.value.kesimpulan_klinis !== "") {
-    return selectedDetail.value.kesimpulan_klinis;
-  }
-  return detailLengkap.value?.kesimpulan_klinis || "-";
+  return detailLengkap.value?.kesimpulan_klinis || selectedDetail.value.kesimpulan_klinis || "-";
 });
+
+const selectedRisikoPanduan = computed(() =>
+  selectedDetail.value ? risikoExport(selectedDetail.value) : "-",
+);
 
 // ── Score Detail Helpers ──
 function isMMYS(i) {
@@ -2949,7 +2948,7 @@ const epdsBarCls = computed(() => {
   const s = selectedDetail.value.skor_total;
   return (
     "h-full rounded-full " +
-    (s >= 13 ? "bg-red-400" : s >= 9 ? "bg-amber-400" : "bg-emerald-400")
+    (s >= 13 ? "bg-red-400" : "bg-emerald-400")
   );
 });
 
@@ -3068,6 +3067,64 @@ async function doLogout() {
   router.push("/login");
   showToast("Berhasil logout.", "success");
 }
+function hasilPanduanExport(d) {
+  if (Array.isArray(d.jawaban)) {
+    const hasil = hitungSkor(d.instrumen, d.jawaban);
+    if (hasil) return hasil;
+  }
+  return null;
+}
+
+function rekomendasiText(value) {
+  return Array.isArray(value) ? value.join("; ") : value || "-";
+}
+
+function kesimpulanExport(d) {
+  return hasilPanduanExport(d)?.kesimpulan_klinis || d.kesimpulan_klinis || "-";
+}
+
+function rekomendasiExport(d) {
+  return rekomendasiText(hasilPanduanExport(d)?.rekomendasi_list || d.rekomendasi);
+}
+
+function risikoExport(d) {
+  return hasilPanduanExport(d)?.risk_level || d.tingkat_risiko || "-";
+}
+
+function escapeLaporanHtml(value) {
+  return String(value ?? "-")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function buatRowsExport(data) {
+  return data.map((d, i) => ({
+    No: i + 1,
+    "Tanggal Skrining": d.tanggal_skrining || "-",
+    "Nama Lengkap": d.nama_lengkap || "-",
+    NIK: d.nik || "-",
+    Usia: d.usia || "-",
+    "Jenis Kelamin":
+      d.jenis_kelamin === "L"
+        ? "Laki-laki"
+        : d.jenis_kelamin === "P"
+          ? "Perempuan"
+          : "-",
+    "Sekolah/Kampus": d.nama_sekolah || "-",
+    "No HP": d.nomor_hp || "-",
+    Alamat: d.alamat || "-",
+    Kecamatan: d.kecamatan || "-",
+    Desa: d.desa || "-",
+    "Tempat Skrining": d.tempat_skrining || "-",
+    Instrumen: instrLabelText(d.instrumen),
+    "Skor Total": d.skor_total ?? "-",
+    "Tingkat Risiko": risikoExport(d),
+    "Kesimpulan Klinis": kesimpulanExport(d),
+    Rekomendasi: rekomendasiExport(d),
+  }));
+}
 function exportExcel() {
   const data = store.dataFilter;
   if (!data.length) {
@@ -3075,55 +3132,32 @@ function exportExcel() {
     return;
   }
   try {
-    const headers = ["No","Tanggal Skrining","Nama Lengkap","NIK","Usia","Jenis Kelamin","Sekolah/Kampus","No HP","Alamat","Kecamatan","Desa","Tempat Skrining","Instrumen","Skor Total","Tingkat Risiko","Kesimpulan Klinis","Rekomendasi"];
-    const rows = data.map((d, i) => {
-      const calc = hitungSkor(d.instrumen, d.jawaban) || {};
-      const kesimpulan = d.kesimpulan_klinis || calc.kesimpulan_klinis || "-";
-      let rekom = d.rekomendasi;
-      if (!rekom || (Array.isArray(rekom) && rekom.length === 0)) {
-        rekom = calc.rekomendasi_list || [];
-      }
-      const rekomStr = Array.isArray(rekom) ? rekom.join("; ") : rekom;
-
-      return [
-        i + 1,
-        d.tanggal_skrining || "-",
-        d.nama_lengkap || "-",
-        d.nik || "-",
-        d.usia ?? "-",
-        d.jenis_kelamin === "L" ? "Laki-laki" : d.jenis_kelamin === "P" ? "Perempuan" : "-",
-        d.nama_sekolah || "-",
-        d.nomor_hp || "-",
-        d.alamat || "-",
-        d.kecamatan || "-",
-        d.desa || "-",
-        d.tempat_skrining || "-",
-        instrLabelText(d.instrumen) || "-",
-        d.skor_total ?? "-",
-        d.tingkat_risiko || "-",
-        kesimpulan,
-        rekomStr,
-      ];
-    });
-
-    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-    // Optional: auto-adjust columns widths
-    const colWidths = headers.map(h => ({ wch: Math.max(10, h.length) }));
-    rows.forEach(row => {
-      row.forEach((val, colIdx) => {
-        const len = String(val).length;
-        if (len > colWidths[colIdx].wch) {
-           colWidths[colIdx].wch = Math.min(len, 60); // Cap width to 60
-        }
-      });
-    });
-    worksheet['!cols'] = colWidths;
-
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Data Skrining");
+    const rows = buatRowsExport(data);
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws["!cols"] = [
+      { wch: 5 },
+      { wch: 16 },
+      { wch: 28 },
+      { wch: 20 },
+      { wch: 6 },
+      { wch: 14 },
+      { wch: 25 },
+      { wch: 16 },
+      { wch: 30 },
+      { wch: 16 },
+      { wch: 16 },
+      { wch: 20 },
+      { wch: 14 },
+      { wch: 10 },
+      { wch: 16 },
+      { wch: 40 },
+      { wch: 50 },
+    ];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Data Skrining");
     const today = new Date().toISOString().split("T")[0];
-    XLSX.writeFile(workbook, `SSJ_Sekadau_${today}.xlsx`);
-    
+    XLSX.writeFile(wb, `SSJ_Sekadau_${today}.xlsx`);
+
     showToast(`${data.length} data berhasil diexport ke Excel.`, "success");
   } catch (err) {
     showToast("Gagal export.", "error");
@@ -3157,57 +3191,34 @@ function exportExcelLaporan() {
     return;
   }
   try {
-    const headers = ["No","Tanggal Skrining","Nama Lengkap","NIK","Usia","Jenis Kelamin","Sekolah/Kampus","No HP","Alamat","Kecamatan","Desa","Tempat Skrining","Instrumen","Skor Total","Tingkat Risiko","Kesimpulan Klinis","Rekomendasi"];
-    const rows = data.map((d, i) => {
-      const calc = hitungSkor(d.instrumen, d.jawaban) || {};
-      const kesimpulan = d.kesimpulan_klinis || calc.kesimpulan_klinis || "-";
-      let rekom = d.rekomendasi;
-      if (!rekom || (Array.isArray(rekom) && rekom.length === 0)) {
-        rekom = calc.rekomendasi_list || [];
-      }
-      const rekomStr = Array.isArray(rekom) ? rekom.join("; ") : rekom;
-
-      return [
-        i + 1,
-        d.tanggal_skrining || "-",
-        d.nama_lengkap || "-",
-        d.nik || "-",
-        d.usia ?? "-",
-        d.jenis_kelamin === "L" ? "Laki-laki" : d.jenis_kelamin === "P" ? "Perempuan" : "-",
-        d.nama_sekolah || "-",
-        d.nomor_hp || "-",
-        d.alamat || "-",
-        d.kecamatan || "-",
-        d.desa || "-",
-        d.tempat_skrining || "-",
-        instrLabelText(d.instrumen) || "-",
-        d.skor_total ?? "-",
-        d.tingkat_risiko || "-",
-        kesimpulan,
-        rekomStr,
-      ];
-    });
-
-    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-    // Optional: auto-adjust columns widths
-    const colWidths = headers.map(h => ({ wch: Math.max(10, h.length) }));
-    rows.forEach(row => {
-      row.forEach((val, colIdx) => {
-        const len = String(val).length;
-        if (len > colWidths[colIdx].wch) {
-           colWidths[colIdx].wch = Math.min(len, 60); // Cap width to 60
-        }
-      });
-    });
-    worksheet['!cols'] = colWidths;
-
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Data Skrining");
-    const periodeLabel = laporanDari.value && laporanSampai.value
-      ? `${laporanDari.value}_${laporanSampai.value}`
-      : "semua";
-    XLSX.writeFile(workbook, `SSJ_Laporan_${periodeLabel}.xlsx`);
-    
+    const rows = buatRowsExport(data);
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws["!cols"] = [
+      { wch: 5 },
+      { wch: 16 },
+      { wch: 28 },
+      { wch: 20 },
+      { wch: 6 },
+      { wch: 14 },
+      { wch: 25 },
+      { wch: 16 },
+      { wch: 30 },
+      { wch: 16 },
+      { wch: 16 },
+      { wch: 20 },
+      { wch: 14 },
+      { wch: 10 },
+      { wch: 16 },
+      { wch: 40 },
+      { wch: 50 },
+    ];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Data Skrining");
+    const periodeLabel =
+      laporanDari.value && laporanSampai.value
+        ? `${laporanDari.value}_${laporanSampai.value}`
+        : "semua";
+    XLSX.writeFile(wb, `SSJ_Laporan_${periodeLabel}.xlsx`);
     showToast(`${data.length} data berhasil diexport ke Excel.`, "success");
   } catch (err) {
     showToast("Gagal export.", "error");
@@ -3219,20 +3230,21 @@ function exportPdfLaporan() {
     showToast("Tidak ada data laporan untuk diexport.", "warning");
     return;
   }
-  const high = data.filter((d) => d.tingkat_risiko === "High Risk").length;
-  const mod = data.filter((d) => d.tingkat_risiko === "Moderate Risk").length;
-  const low = data.filter((d) => d.tingkat_risiko === "Low Risk").length;
+  const high = data.filter((d) => risikoExport(d) === "High Risk").length;
+  const mod = data.filter((d) => risikoExport(d) === "Moderate Risk").length;
+  const low = data.filter((d) => risikoExport(d) === "Low Risk").length;
   const periode =
     laporanDari.value && laporanSampai.value
       ? `${laporanDari.value} s/d ${laporanSampai.value}`
       : "Semua Data";
-  const tableRows = data.map(sanitizePdfRow)
-    .map(
-      (d, i) =>
-        `<tr><td>${i + 1}</td><td>${d.tanggal_skrining || "-"}</td><td>${d.nama_lengkap || "-"}</td><td>${d.nik || "-"}</td><td>${d.usia || "-"}</td><td>${d.jenis_kelamin === "L" ? "L" : "P"}</td><td>${d.nama_sekolah || "-"}</td><td>${instrLabelText(d.instrumen)}</td><td>${d.skor_total ?? "-"}</td><td>${d.tingkat_risiko || "-"}</td></tr>`,
-    )
+  const tableRows = data
+    .map((d, i) => {
+      const rekomendasi = escapeLaporanHtml(rekomendasiExport(d)).replace(/; /g, "<br>");
+      return `<tr><td>${i + 1}</td><td>${escapeLaporanHtml(d.tanggal_skrining || "-")}</td><td>${escapeLaporanHtml(d.nama_lengkap || "-")}</td><td>${escapeLaporanHtml(d.nik || "-")}</td><td>${escapeLaporanHtml(d.usia || "-")}</td><td>${escapeLaporanHtml(d.jenis_kelamin === "L" ? "L" : "P")}</td><td>${escapeLaporanHtml(d.nama_sekolah || "-")}</td><td>${escapeLaporanHtml(instrLabelText(d.instrumen))}</td><td>${escapeLaporanHtml(d.skor_total ?? "-")}</td><td>${escapeLaporanHtml(risikoExport(d))}</td><td>${escapeLaporanHtml(kesimpulanExport(d))}</td><td>${rekomendasi}</td></tr>`;
+    })
+
     .join("");
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan SSJ Sekadau</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;padding:24px;font-size:11px}h1{font-size:16px;margin-bottom:4px}h2{font-size:13px;color:#555;margin-bottom:16px}.stats{display:flex;gap:16px;margin-bottom:20px}.stat-card{flex:1;padding:12px;border:1px solid #ddd;border-radius:8px;text-align:center}.stat-num{font-size:24px;font-weight:900}.high{color:#dc2626}.mod{color:#d97706}.low{color:#059669}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#f1f5f9;font-size:10px;text-transform:uppercase}@media print{body{padding:12px}}</style></head><body><h1>Laporan Sistem Skrining Jiwa</h1><h2>UPTD Puskesmas Sekadau — Periode: ${periode}</h2><div class="stats"><div class="stat-card"><div class="stat-num">${data.length}</div><div>Total</div></div><div class="stat-card"><div class="stat-num high">${high}</div><div>High Risk</div></div><div class="stat-card"><div class="stat-num mod">${mod}</div><div>Moderate</div></div><div class="stat-card"><div class="stat-num low">${low}</div><div>Low Risk</div></div></div><table><thead><tr><th>No</th><th>Tanggal</th><th>Nama</th><th>NIK</th><th>Usia</th><th>JK</th><th>Sekolah</th><th>Instrumen</th><th>Skor</th><th>Risiko</th></tr></thead><tbody>${tableRows}</tbody></table></body></html>`;
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan SSJ Sekadau</title><style>*{margin:0;padding:0;box-sizing:border-box}@page{size:landscape;margin:10mm}body{font-family:Arial,sans-serif;padding:18px;font-size:9px}h1{font-size:16px;margin-bottom:4px}h2{font-size:13px;color:#555;margin-bottom:16px}.stats{display:flex;gap:16px;margin-bottom:20px}.stat-card{flex:1;padding:12px;border:1px solid #ddd;border-radius:8px;text-align:center}.stat-num{font-size:24px;font-weight:900}.high{color:#dc2626}.mod{color:#d97706}.low{color:#059669}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #ddd;padding:5px 6px;text-align:left;vertical-align:top}th{background:#f1f5f9;font-size:10px;text-transform:uppercase}@media print{body{padding:12px}}</style></head><body><h1>Laporan Sistem Skrining Jiwa</h1><h2>UPTD Puskesmas Sekadau — Periode: ${periode}</h2><div class="stats"><div class="stat-card"><div class="stat-num">${data.length}</div><div>Total</div></div><div class="stat-card"><div class="stat-num high">${high}</div><div>High Risk</div></div><div class="stat-card"><div class="stat-num mod">${mod}</div><div>Moderate</div></div><div class="stat-card"><div class="stat-num low">${low}</div><div>Low Risk</div></div></div><table><thead><tr><th>No</th><th>Tanggal</th><th>Nama</th><th>NIK</th><th>Usia</th><th>JK</th><th>Sekolah</th><th>Instrumen</th><th>Skor</th><th>Risiko</th><th>Kesimpulan Klinis</th><th>Rekomendasi</th></tr></thead><tbody>${tableRows}</tbody></table></body></html>`;
   const iframe = document.createElement("iframe");
   iframe.style.position = "absolute";
   iframe.style.width = "0";
