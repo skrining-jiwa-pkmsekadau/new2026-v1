@@ -588,7 +588,7 @@
                 </div>
 
                 <!-- Selects -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-5 gap-2 w-full">
+                <div class="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-6 gap-2 w-full">
                   <select
                     :value="store.filterInstr"
                     @change="
@@ -640,6 +640,18 @@
                     <option value="">Semua Gender</option>
                     <option value="L">Laki-laki</option>
                     <option value="P">Perempuan</option>
+                  </select>
+                  <select
+                    :value="store.filterRiwayat"
+                    @change="
+                      store.filterRiwayat = $event.target.value;
+                      store.terapkanFilter();
+                    "
+                    class="px-2 py-2 rounded-lg border border-slate-200 focus:border-blue-400 focus:outline-none text-xs text-slate-700 bg-slate-50 truncate"
+                  >
+                    <option value="">Semua Riwayat</option>
+                    <option value="pertama">Skrining Pertama</option>
+                    <option value="ulang">Skrining Ulang</option>
                   </select>
                   <select
                     :value="store.filterSekolah"
@@ -3251,11 +3263,11 @@ function exportPdfLaporan() {
   const tableRows = data
     .map((d, i) => {
       const rekomendasi = escapeLaporanHtml(rekomendasiExport(d)).replace(/; /g, "<br>");
-      return `<tr><td>${i + 1}</td><td>${escapeLaporanHtml(d.tanggal_skrining || "-")}</td><td>${escapeLaporanHtml(d.nama_lengkap || "-")}</td><td>${escapeLaporanHtml(d.nik || "-")}</td><td>${escapeLaporanHtml(d.usia || "-")}</td><td>${escapeLaporanHtml(d.jenis_kelamin === "L" ? "L" : "P")}</td><td>${escapeLaporanHtml(d.nama_sekolah || "-")}</td><td>${escapeLaporanHtml(instrLabelText(d.instrumen))}</td><td>${escapeLaporanHtml(d.skor_total ?? "-")}</td><td>${escapeLaporanHtml(risikoExport(d))}</td><td>${escapeLaporanHtml(kesimpulanExport(d))}</td><td>${rekomendasi}</td></tr>`;
+      return `<tr><td>${i + 1}</td><td>${escapeLaporanHtml(d.tanggal_skrining || "-")}</td><td>${escapeLaporanHtml(d.nama_lengkap || "-")}</td><td>${escapeLaporanHtml(d.nik || "-")}</td><td>${escapeLaporanHtml(d.skrining_ke || 1)}</td><td>${escapeLaporanHtml(d.jumlah_riwayat || 1)}</td><td>${escapeLaporanHtml(d.usia || "-")}</td><td>${escapeLaporanHtml(d.jenis_kelamin === "L" ? "L" : "P")}</td><td>${escapeLaporanHtml(d.nama_sekolah || "-")}</td><td>${escapeLaporanHtml(instrLabelText(d.instrumen))}</td><td>${escapeLaporanHtml(d.skor_total ?? "-")}</td><td>${escapeLaporanHtml(risikoExport(d))}</td><td>${escapeLaporanHtml(kesimpulanExport(d))}</td><td>${rekomendasi}</td></tr>`;
     })
 
     .join("");
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan SSJ Sekadau</title><style>*{margin:0;padding:0;box-sizing:border-box}@page{size:landscape;margin:10mm}body{font-family:Arial,sans-serif;padding:18px;font-size:9px}h1{font-size:16px;margin-bottom:4px}h2{font-size:13px;color:#555;margin-bottom:16px}.stats{display:flex;gap:16px;margin-bottom:20px}.stat-card{flex:1;padding:12px;border:1px solid #ddd;border-radius:8px;text-align:center}.stat-num{font-size:24px;font-weight:900}.high{color:#dc2626}.mod{color:#d97706}.low{color:#059669}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #ddd;padding:5px 6px;text-align:left;vertical-align:top}th{background:#f1f5f9;font-size:10px;text-transform:uppercase}@media print{body{padding:12px}}</style></head><body><h1>Laporan Sistem Skrining Jiwa</h1><h2>UPTD Puskesmas Sekadau — Periode: ${periode}</h2><div class="stats"><div class="stat-card"><div class="stat-num">${data.length}</div><div>Total</div></div><div class="stat-card"><div class="stat-num high">${high}</div><div>High Risk</div></div><div class="stat-card"><div class="stat-num mod">${mod}</div><div>Moderate</div></div><div class="stat-card"><div class="stat-num low">${low}</div><div>Low Risk</div></div></div><table><thead><tr><th>No</th><th>Tanggal</th><th>Nama</th><th>NIK</th><th>Usia</th><th>JK</th><th>Sekolah</th><th>Instrumen</th><th>Skor</th><th>Risiko</th><th>Kesimpulan Klinis</th><th>Rekomendasi</th></tr></thead><tbody>${tableRows}</tbody></table></body></html>`;
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan SSJ Sekadau</title><style>*{margin:0;padding:0;box-sizing:border-box}@page{size:landscape;margin:10mm}body{font-family:Arial,sans-serif;padding:18px;font-size:9px}h1{font-size:16px;margin-bottom:4px}h2{font-size:13px;color:#555;margin-bottom:16px}.stats{display:flex;gap:16px;margin-bottom:20px}.stat-card{flex:1;padding:12px;border:1px solid #ddd;border-radius:8px;text-align:center}.stat-num{font-size:24px;font-weight:900}.high{color:#dc2626}.mod{color:#d97706}.low{color:#059669}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #ddd;padding:5px 6px;text-align:left;vertical-align:top}th{background:#f1f5f9;font-size:10px;text-transform:uppercase}@media print{body{padding:12px}}</style></head><body><h1>Laporan Sistem Skrining Jiwa</h1><h2>UPTD Puskesmas Sekadau — Periode: ${periode}</h2><div class="stats"><div class="stat-card"><div class="stat-num">${data.length}</div><div>Total</div></div><div class="stat-card"><div class="stat-num high">${high}</div><div>High Risk</div></div><div class="stat-card"><div class="stat-num mod">${mod}</div><div>Moderate</div></div><div class="stat-card"><div class="stat-num low">${low}</div><div>Low Risk</div></div></div><table><thead><tr><th>No</th><th>Tanggal</th><th>Nama</th><th>NIK</th><th>Ke</th><th>Total Riwayat</th><th>Usia</th><th>JK</th><th>Sekolah</th><th>Instrumen</th><th>Skor</th><th>Risiko</th><th>Kesimpulan Klinis</th><th>Rekomendasi</th></tr></thead><tbody>${tableRows}</tbody></table></body></html>`;
   const iframe = document.createElement("iframe");
   iframe.style.position = "absolute";
   iframe.style.width = "0";

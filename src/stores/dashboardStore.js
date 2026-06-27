@@ -64,6 +64,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const filterKecamatan= ref('')
   const filterGender   = ref('')
   const filterSekolah  = ref('')
+  const filterRiwayat  = ref('')
 
   // ── Actions ──
 
@@ -131,8 +132,9 @@ export const useDashboardStore = defineStore('dashboard', () => {
       const cocokKec    = !filterKecamatan.value || d.kecamatan === filterKecamatan.value
       const cocokGender = !filterGender.value || d.jenis_kelamin === filterGender.value
       const cocokSekolah= !filterSekolah.value || (d.nama_sekolah === filterSekolah.value)
+      const cocokRiwayat= !filterRiwayat.value || (filterRiwayat.value === 'ulang' ? (d.jumlah_riwayat || 1) > 1 : (d.skrining_ke || 1) === 1)
       
-      return cocokCari && cocokInstr && cocokRisiko && cocokDari && cocokSampai && cocokKec && cocokGender && cocokSekolah
+      return cocokCari && cocokInstr && cocokRisiko && cocokDari && cocokSampai && cocokKec && cocokGender && cocokSekolah && cocokRiwayat
     })
     halamanAktif.value = 1
   }
@@ -162,6 +164,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     filterKecamatan.value = ''
     filterGender.value    = ''
     filterSekolah.value   = ''
+    filterRiwayat.value   = ''
     terapkanFilter()
   }
 
@@ -176,7 +179,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     semuaData, dataFilter, isLoading,
     halamanAktif, perHalaman, sortKolom, sortAsc,
     filterCari, filterInstr, filterRisiko,
-    filterTglDari, filterTglSampai, filterKecamatan, filterGender, filterSekolah,
+    filterTglDari, filterTglSampai, filterKecamatan, filterGender, filterSekolah, filterRiwayat,
     cekSession, login, logout, fetchSemuaData,
     hapusRecord, terapkanFilter, sortTabel, resetSemuaFilter, gantiHalaman,
   }
