@@ -808,6 +808,9 @@
                       <p class="text-[11px] text-slate-400">
                         {{ d.usia || "-" }} th · {{ d.jenis_kelamin || "-" }}
                       </p>
+                      <p class="text-[10px] text-blue-600 font-bold mt-1">
+                        Skrining ke-{{ d.skrining_ke || 1 }}
+                      </p>
                     </td>
                     <td
                       class="px-4 py-3 text-xs text-slate-500 font-mono hidden md:table-cell"
@@ -1871,6 +1874,9 @@
             <p class="text-blue-200 text-xs font-mono">
               NIK: {{ selectedDetail.nik || "-" }}
             </p>
+            <span class="inline-flex mt-2 px-2 py-0.5 rounded-full bg-white/15 border border-white/20 text-[10px] font-bold text-white">
+              Skrining ke-{{ selectedDetail.skrining_ke || 1 }} dari {{ selectedDetail.jumlah_riwayat || 1 }}
+            </span>
           </div>
           <button
             @click="selectedDetail = null"
@@ -2277,6 +2283,9 @@
                               },
                             )
                           }}
+                        </span>
+                        <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
+                          Skrining ke-{{ r.skrining_ke || 1 }}
                         </span>
                         <span
                           v-if="r.id === selectedDetail.id"
@@ -3120,6 +3129,8 @@ function buatRowsExport(data) {
     "Tempat Skrining": d.tempat_skrining || "-",
     Instrumen: instrLabelText(d.instrumen),
     "Skor Total": d.skor_total ?? "-",
+    "Skrining Ke": d.skrining_ke || 1,
+    "Total Riwayat NIK": d.jumlah_riwayat || 1,
     "Tingkat Risiko": risikoExport(d),
     "Kesimpulan Klinis": kesimpulanExport(d),
     Rekomendasi: rekomendasiExport(d),

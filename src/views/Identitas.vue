@@ -658,13 +658,12 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useSkriningStore } from "@/stores/skriningStore";
 import { useToast } from "@/composables/useToast";
 import { DATA_WILAYAH } from "@/constants/wilayah";
 import { INSTRUMEN_INFO } from "@/constants/instrumen";
-import { hitungSkor } from "@/utils/skoring";
 import {
   hitungUsia,
   nentukanInstrumen,
@@ -722,6 +721,16 @@ const pekerjaanOptions = [
   "Lainnya",
 ];
 
+
+function normalisasiPilihan(value, options, alias = {}) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (options.includes(raw)) return raw;
+  const normalized = raw.toLowerCase();
+  const aliasValue = alias[normalized];
+  if (aliasValue && options.includes(aliasValue)) return aliasValue;
+  return options.find((option) => option.toLowerCase() === normalized) || "";
+}
 const namaSekolahOptions = [
   "SMA NEGERI 01",
   "SMA KARYA",
@@ -791,11 +800,14 @@ const instrumenPreview = computed(() => {
   return kode ? INSTRUMEN_INFO[kode] : null;
 });
 
+const identitasDariRiwayat = ref(false);
+let sedangIsiRiwayat = false;
+
 // Reset desa saat kecamatan berubah
 watch(
   () => form.value.kecamatan,
   () => {
-    form.value.desa = "";
+    if (!sedangIsiRiwayat) form.value.desa = "";
   },
 );
 
@@ -803,7 +815,7 @@ watch(
 watch(
   () => form.value.pekerjaan,
   (newJob) => {
-    if (newJob !== "Pelajar" && newJob !== "Mahasiswa") {
+    if (!sedangIsiRiwayat && newJob !== "Pelajar" && newJob !== "Mahasiswa") {
       form.value.namaSekolah = "";
     }
   },
@@ -811,9 +823,68 @@ watch(
 
 // Reset hamil saat gender/usia berubah dan section tersembunyi
 watch(showHamilSection, (show) => {
-  if (!show) form.value.hamil = "";
+  if (!sedangIsiRiwayat && !show) form.value.hamil = "";
 });
 
+function kosongkanIdentitasRiwayat() {
+  if (!identitasDariRiwayat.value) return;
+  sedangIsiRiwayat = true;
+  form.value.nama = "";
+  form.value.tglLahir = "";
+  form.value.gender = "";
+  form.value.hp = "";
+  form.value.kecamatan = "";
+  form.value.desa = "";
+  form.value.alamat = "";
+  form.value.pendidikan = "";
+  form.value.pekerjaan = "";
+  form.value.namaSekolah = "";
+  form.value.tempatSkrining = "";
+  form.value.hamil = "";
+  sedangIsiRiwayat = false;
+  identitasDariRiwayat.value = false;
+}
+
+async function isiIdentitasDariRiwayat(riwayat) {
+  const tanggalLahir = riwayat.tanggal_lahir || "";
+  const gender = riwayat.jenis_kelamin || "";
+  const usiaRiwayat = hitungUsia(tanggalLahir);
+  const pekerjaan = normalisasiPilihan(riwayat.pekerjaan, pekerjaanOptions, {
+    pns: "ASN",
+    asn: "ASN",
+    siswa: "Pelajar",
+    pelajar: "Pelajar",
+    mahasiswa: "Mahasiswa",
+    irt: "Ibu Rumah Tangga",
+    ibu_rumah_tangga: "Ibu Rumah Tangga",
+  });
+
+  sedangIsiRiwayat = true;
+  form.value.nama = riwayat.nama_lengkap || "";
+  form.value.tglLahir = tanggalLahir;
+  form.value.gender = gender;
+  form.value.hp = riwayat.nomor_hp || "";
+  form.value.kecamatan = normalisasiPilihan(riwayat.kecamatan, kecamatanList.value);
+  form.value.alamat = riwayat.alamat || "";
+  form.value.pendidikan = normalisasiPilihan(riwayat.pendidikan, pendidikanOptions);
+  form.value.pekerjaan = pekerjaan;
+  form.value.tempatSkrining = riwayat.tempat_skrining || "";
+  form.value.hamil = gender === "P" && usiaRiwayat >= 13
+    ? riwayat.is_hamil_nifas
+      ? "ya"
+      : "tidak"
+    : "";
+
+  await nextTick();
+  form.value.desa = normalisasiPilihan(riwayat.desa, desaList.value);
+  form.value.namaSekolah = pekerjaan === "Pelajar"
+    ? normalisasiPilihan(riwayat.nama_sekolah, namaSekolahOptions)
+    : pekerjaan === "Mahasiswa"
+      ? normalisasiPilihan(riwayat.nama_sekolah, namaKampusOptions)
+      : "";
+  sedangIsiRiwayat = false;
+  identitasDariRiwayat.value = true;
+}
 // ── NIK Checking ──
 const nikStatus = ref({ html: "", checking: false });
 let nikDebounce = null;
@@ -825,6 +896,7 @@ function onNikInput() {
     nikStatus.value.html = "";
     store.nikDiblokir = false;
     store.tanggalBolehSkrining = null;
+    kosongkanIdentitasRiwayat();
     return;
   }
   nikStatus.value.checking = true;
@@ -844,6 +916,7 @@ async function cekRiwayatNIK(nik) {
     }
 
     if (!data || data.length === 0) {
+      kosongkanIdentitasRiwayat();
       nikStatus.value.html = `<div class="flex items-center gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-700">
         <span class="material-symbols-outlined text-[15px]">check_circle</span>NIK dapat digunakan untuk skrining.</div>`;
       return;
@@ -868,38 +941,6 @@ async function cekRiwayatNIK(nik) {
     const tglBoleh = new Date(tglTerakhir);
     tglBoleh.setDate(tglTerakhir.getDate() + BATAS_HARI);
 
-    const riskPanduan = (d) => {
-      if (Array.isArray(d?.jawaban)) {
-        const hasil = hitungSkor(d.instrumen, d.jawaban);
-        if (hasil?.risk_level) return hasil.risk_level;
-      }
-      return d.tingkat_risiko || "-";
-    };
-    const rC = (r) =>
-      ({
-        "High Risk": "bg-red-100 text-red-700",
-        "Moderate Risk": "bg-amber-100 text-amber-700",
-        "Low Risk": "bg-emerald-100 text-emerald-700",
-      })[r] || "bg-slate-100 text-slate-600";
-    const iL = (i) =>
-      ({
-        MMYS_ANAK: "MMYS Anak",
-        MMYS_REMAJA: "MMYS Remaja",
-        PHQ4: "PHQ-4",
-        EPDS: "EPDS",
-      })[i] || i;
-    const rows = data
-      .map(
-        (
-          d,
-        ) => `<div class="flex items-center justify-between gap-2 py-1.5 border-b border-slate-100 last:border-0">
-      <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-slate-400 text-[13px]">calendar_today</span>
-      <span class="text-[11px] text-slate-600">${formatTanggalID(d.tanggal_skrining)}</span>
-      <span class="text-[11px] font-medium">&middot; ${escHtml(iL(d.instrumen))}</span></div>
-      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${rC(riskPanduan(d))}">${escHtml(riskPanduan(d))}</span></div>`,
-      )
-      .join("");
-
 
     if (sisaHari > 0) {
       store.nikDiblokir = true;
@@ -913,12 +954,14 @@ async function cekRiwayatNIK(nik) {
         <p class="text-[10px] text-rose-500 italic">Skrining hanya dapat dilakukan 1x dalam 90 hari.</p></div>`;
     } else {
       store.nikDiblokir = false;
-      nikStatus.value.html = `<div class="p-3 rounded-xl bg-blue-50 border border-blue-200">
-        <div class="flex items-center gap-2"><span class="material-symbols-outlined text-blue-500 text-[16px]">check_circle</span>
-        <p class="text-xs font-bold text-blue-700">NIK dapat digunakan untuk skrining.</p></div>
-        <p class="text-[10px] text-blue-500 mt-1.5 italic">Detail riwayat hanya dapat dilihat oleh admin melalui dashboard.</p></div>`;
+      await isiIdentitasDariRiwayat(data[0]);
+      nikStatus.value.html = `<div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+        <div class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-500 text-[16px]">check_circle</span>
+        <p class="text-xs font-bold text-emerald-700">NIK dapat digunakan untuk skrining ulang.</p></div>
+        <p class="text-[10px] text-emerald-600 mt-1.5 italic">Data identitas terakhir sudah diisi otomatis. Silakan periksa kembali sebelum lanjut ke kuesioner.</p></div>`;
     }
-  } catch {
+  } catch (err) {
+    console.error("[cekRiwayatNIK]", err);
     nikStatus.value.html = `<div class="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-500">
       <span class="material-symbols-outlined text-[15px]">wifi_off</span>Tidak dapat memeriksa riwayat.</div>`;
   } finally {

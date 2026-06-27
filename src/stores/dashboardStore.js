@@ -19,6 +19,25 @@ function normalisasiHasilPanduan(record) {
   }
 }
 
+function tambahMetadataRiwayat(records) {
+  const groups = new Map()
+  records.forEach((record) => {
+    const nik = record?.nik || `__tanpa_nik_${record?.id || Math.random()}`
+    if (!groups.has(nik)) groups.set(nik, [])
+    groups.get(nik).push(record)
+  })
+
+  groups.forEach((items) => {
+    items.sort((a, b) => new Date(a.tanggal_skrining) - new Date(b.tanggal_skrining))
+    const total = items.length
+    items.forEach((item, index) => {
+      item.skrining_ke = index + 1
+      item.jumlah_riwayat = total
+    })
+  })
+
+  return records
+}
 export const useDashboardStore = defineStore('dashboard', () => {
   // ── State ──
   const adminUser     = ref(null)
@@ -81,7 +100,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
         .eq('is_valid', true)
         .order('tanggal_skrining', { ascending: false })
       if (error) throw error
-      semuaData.value  = (data || []).map(normalisasiHasilPanduan)
+      semuaData.value  = tambahMetadataRiwayat((data || []).map(normalisasiHasilPanduan))
       dataFilter.value = [...semuaData.value]
       halamanAktif.value = 1
     } catch (err) {
