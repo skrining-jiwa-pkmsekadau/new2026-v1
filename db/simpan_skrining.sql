@@ -111,7 +111,7 @@ BEGIN
     FOR i IN 0..9 LOOP
       v_jwb := v_jawaban->i;
       v_total_epds := v_total_epds + (v_jwb->>'value')::INT;
-      IF v_jwb->>'id' = 'E10' AND (v_jwb->>'value')::INT > 0 THEN
+      IF v_jwb->>'id' = 'E10' AND (v_jwb->>'value')::INT = 3 THEN
         v_flag_e10 := TRUE;
       END IF;
     END LOOP;
@@ -123,7 +123,7 @@ BEGIN
       v_kesimpulan_klinis := 'Hasil skrining EPDS mengindikasikan kemungkinan gejala depresi pada ibu hamil/nifas (skor ≥ 13 atau Q10 positif). Diperlukan penanganan segera.';
       v_rekomendasi := '["Konseling awal segera oleh Perawat atau Bidan yang bersifat suportif.", "Pemeriksaan kesehatan jiwa untuk menegakkan diagnosis oleh Dokter atau Psikolog Klinis.", "Tatalaksana komprehensif sesuai kompetensi tenaga medis dan kesehatan di Puskesmas.", "Segera rujuk ke FKTL jika ada indikasi membahayakan diri sendiri atau orang lain.", "Pastikan pendampingan intensif dari keluarga terdekat selama proses pemulihan."]'::JSONB;
     ELSIF v_total_epds >= 9 THEN 
-      v_tingkat_risiko := 'Moderate Risk';
+      v_tingkat_risiko := 'Low Risk';
       v_kesimpulan_klinis := 'Skor EPDS 9–12 menunjukkan gejala yang perlu dipantau. Lakukan skrining ulang pada kunjungan ANC berikutnya.';
       v_rekomendasi := '["Berikan edukasi kesehatan jiwa: tanda sehat jiwa, faktor protektif, latihan manajemen stres.", "Lakukan skrining ulang EPDS pada kunjungan ANC berikutnya.", "Pantau kondisi ibu secara berkala oleh Bidan atau Perawat.", "Tingkatkan dukungan sosial dan emosional dari keluarga terdekat."]'::JSONB;
     ELSE 

@@ -528,21 +528,37 @@
           <span v-else class="material-symbols-outlined text-[18px]">{{
             saveStatus.icon
           }}</span>
-          <span>{{ saveStatus.msg }}</span>
+          <span class="flex-1">{{ saveStatus.msg }}</span>
+          <button
+            v-if="saveStatus.retry"
+            type="button"
+            @click="simpanKeSupabase"
+            class="ml-auto px-3 py-1 rounded-lg bg-white/80 border border-amber-300 text-xs font-bold text-amber-800 hover:bg-white transition-all"
+          >
+            Coba Simpan Ulang
+          </button>
         </div>
 
         <!-- TOMBOL AKSI -->
         <div class="flex flex-col sm:flex-row gap-3 no-print">
           <button
-            @click="router.push('/')"
-            class="flex-1 py-3 rounded-xl border-2 border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-600 font-semibold text-sm transition-all flex items-center justify-center gap-2"
+            @click="goHome"
+            :disabled="actionLocked"
+            :class="[
+              'flex-1 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-600 font-semibold text-sm transition-all flex items-center justify-center gap-2',
+              actionLocked ? 'opacity-50 cursor-not-allowed' : 'hover:border-slate-300 hover:bg-slate-50',
+            ]"
           >
             <span class="material-symbols-outlined text-[18px]">home</span>
             Kembali ke Beranda
           </button>
           <button
             @click="cetakPDF"
-            class="flex-1 py-3 rounded-xl border-2 border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-600 font-semibold text-sm transition-all flex items-center justify-center gap-2"
+            :disabled="actionLocked"
+            :class="[
+              'flex-1 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-600 font-semibold text-sm transition-all flex items-center justify-center gap-2',
+              actionLocked ? 'opacity-50 cursor-not-allowed' : 'hover:border-slate-300 hover:bg-slate-50',
+            ]"
           >
             <span class="material-symbols-outlined text-[18px]">print</span>
             Cetak Hasil
@@ -550,7 +566,13 @@
 
           <button
             @click="skriningBaru"
-            class="flex-[2] py-3 rounded-xl bg-gradient-to-r from-[#0f4b80] to-[#1e88e5] hover:from-[#0a355c] hover:to-[#1565c0] text-white font-bold text-sm shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2"
+            :disabled="actionLocked"
+            :class="[
+              'flex-[2] py-3 rounded-xl text-white font-bold text-sm shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2',
+              actionLocked
+                ? 'bg-slate-300 cursor-not-allowed opacity-60'
+                : 'bg-gradient-to-r from-[#0f4b80] to-[#1e88e5] hover:from-[#0a355c] hover:to-[#1565c0]',
+            ]"
           >
             <span class="material-symbols-outlined text-[18px]"
               >add_circle</span
@@ -559,6 +581,7 @@
           </button>
         </div>
       </div>
+
     </main>
 
     <footer
@@ -584,6 +607,21 @@ const { showToast } = useToast();
 
 const saveStatus = ref(null);
 
+function buildScreeningKey(patient, instrumen, answers) {
+  return [
+    patient?.nik || "",
+    patient?.tanggal_skrining || "",
+    instrumen || "",
+    JSON.stringify(answers || []),
+  ].join("|");
+}
+
+const currentScreeningKey = computed(() =>
+  buildScreeningKey(pasien.value, store.instrumen, store.answers),
+);
+const isSaving = computed(() => Boolean(saveStatus.value?.loading));
+const actionLocked = computed(() => isSaving.value || Boolean(saveStatus.value?.retry));
+
 onMounted(() => {
   if (
     !store.hasilSkrining?.skor_total &&
@@ -592,19 +630,18 @@ onMounted(() => {
     router.replace("/");
     return;
   }
-  
-  if (!store.isSaved) {
-    simpanKeSupabase();
-  } else {
-    // Jika sudah pernah disimpan, langsung tampilkan status sukses
+
+  if (store.savedScreeningKey === currentScreeningKey.value) {
     saveStatus.value = {
       icon: "check_circle",
       cls: "flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 font-medium",
       msg: "Data berhasil disimpan ke server.",
     };
+    return;
   }
-});
 
+  simpanKeSupabase();
+});
 const pasien = computed(() => store.patientData);
 const hasil = computed(() => store.hasilSkrining);
 const instrumenData = computed(() => INSTRUMEN_DATA[store.instrumen]);
@@ -667,7 +704,9 @@ function phqCls(h) {
 
 // Simpan ke Supabase
 async function simpanKeSupabase() {
-  if (store.modeCetak) return;
+  if (store.modeCetak || isSaving.value) return;
+
+  const screeningKey = currentScreeningKey.value;
   saveStatus.value = {
     loading: true,
     cls: "flex items-center gap-2 p-3 rounded-xl bg-blue-50 border border-blue-100 text-sm text-blue-600 font-medium",
@@ -694,15 +733,17 @@ async function simpanKeSupabase() {
     tanggal_skrining: pasien.value.tanggal_skrining,
     tempat_skrining: pasien.value.tempat_skrining,
     instrumen: store.instrumen,
-    jawaban: store.answers,
+    jawaban: [...store.answers],
   };
 
   try {
-    const { error } = await db.rpc('simpan_skrining', { payload_data: payload });
+    const { error } = await db.rpc("simpan_skrining", { payload_data: payload });
     if (error) throw error;
-    
-    // Tandai bahwa data sudah tersimpan di sesi ini
+
+    if (currentScreeningKey.value !== screeningKey) return;
+
     store.isSaved = true;
+    store.savedScreeningKey = screeningKey;
 
     saveStatus.value = {
       icon: "check_circle",
@@ -711,17 +752,25 @@ async function simpanKeSupabase() {
     };
     showToast("Data skrining berhasil disimpan!", "success");
   } catch (err) {
+    if (currentScreeningKey.value !== screeningKey) return;
+
     saveStatus.value = {
       loading: false,
+      retry: true,
       icon: "warning",
       cls: "flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-700 font-medium",
       msg: "Gagal menyimpan: " + (err.message || "Cek koneksi internet."),
     };
-    showToast("Gagal menyimpan data.", "error");
+    showToast("Gagal menyimpan data. Tekan Coba Simpan Ulang sebelum membuat skrining baru.", "error");
   }
+}
+function goHome() {
+  if (actionLocked.value) return;
+  router.push("/");
 }
 
 function cetakPDF() {
+  if (actionLocked.value) return;
   store.modeCetak = true;
   window.print();
   window.onafterprint = () => {
@@ -730,6 +779,7 @@ function cetakPDF() {
 }
 
 function skriningBaru() {
+  if (actionLocked.value) return;
   store.resetSkrining();
   router.push("/identitas");
 }
