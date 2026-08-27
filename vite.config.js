@@ -11,9 +11,9 @@ process.env.TZ = process.env.TZ || 'Asia/Pontianak'
 export default defineConfig({
   plugins: [vue()],
 
-  // Base path:
-  // - GitHub Pages: '/new2026-v1/'
-  // - Vercel/lainnya: '/'
+  // Base path. Hosting resmi adalah Vercel, yang menyajikan dari root,
+  // jadi nilai bakunya '/'. VITE_BASE_PATH dipertahankan agar aplikasi
+  // masih dapat dibangun untuk subdirektori bila diperlukan.
   base: process.env.VITE_BASE_PATH || '/',
 
   resolve: {

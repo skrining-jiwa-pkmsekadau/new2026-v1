@@ -1,0 +1,70 @@
+name: CI
+
+# Hosting ditangani Vercel (auto-deploy dari branch main), jadi workflow
+# ini TIDAK melakukan deploy. Tugasnya hanya menjaga mutu: bila test
+# merah, kegagalan terlihat di GitHub sebelum/di samping deploy Vercel.
+#
+# Keputusan: GitHub untuk menyimpan repo, Vercel untuk hosting.
+# Deploy ke GitHub Pages sudah dihentikan — sebelumnya memakai action
+# pihak ketiga yang memegang GITHUB_TOKEN dengan izin tulis, dan Pages
+# tidak dapat mengirim header keamanan (CSP, X-Frame-Options) yang
+# dibutuhkan aplikasi pengolah data kesehatan. Header itu kini diatur
+# di vercel.json.
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+# Tidak ada permission di level workflow. Job meminta sendiri sesuai
+# kebutuhannya (least privilege).
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test & Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        # actions/checkout v7.0.1 — dipin ke SHA agar tag tidak dapat
+        # dialihkan ke kode lain di kemudian hari.
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Set up Node.js
+        # actions/setup-node v7.0.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # npm ci, BUKAN npm install: memakai package-lock.json apa adanya
+      # sehingga build dapat direproduksi dan dependensi tidak berubah
+      # diam-diam di antara dua kali deploy.
+      - name: Install dependencies
+        run: npm ci
+
+      # Menguji logika skoring terhadap Juknis Kemenkes dan kontrak
+      # posisi jawaban terhadap db/simpan_skrining.sql. Lihat tests/.
+      - name: Run tests
+        run: npm test
+
+      # Build dijalankan juga di sini agar galat kompilasi tertangkap
+      # sebelum Vercel mencoba membangun. Nilai VITE_* di bawah hanya
+      # placeholder: build tidak menghubungi Supabase, dan artefaknya
+      # tidak dipakai untuk deploy.
+      - name: Verify build
+        env:
+          VITE_SUPABASE_URL: https://contoh.supabase.co
+          VITE_SUPABASE_ANON: placeholder-untuk-build-saja
+        run: npm run build
