@@ -9,8 +9,9 @@
       "source": "/(.*)",
       "headers": [
         {
+          "_catatan": "Font kini di-host sendiri di /fonts, sehingga fonts.googleapis.com dan fonts.gstatic.com dicabut dari CSP. 'unsafe-inline' pada style-src masih diperlukan karena Vue mengikat gaya lewat atribut style. connect-src dibatasi hanya ke origin Supabase proyek.",
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://cnernzpzhjcmmhfpamwo.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://cnernzpzhjcmmhfpamwo.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
         },
         {
           "key": "X-Frame-Options",
