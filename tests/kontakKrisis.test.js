@@ -5,23 +5,24 @@
  */
 import { describe, it, expect } from 'vitest'
 import {
-  KONTAK_LOKAL,
-  KONTAK_NASIONAL,
+  KONTAK_SEJIWA,
+  KONTAK_DARURAT,
   KONTAK_KRISIS,
   tautanTelepon,
   tautanWhatsApp,
 } from '@/constants/kontakKrisis'
 
 describe('daftar kontak krisis', () => {
-  it('memuat kontak lokal DAN jalur nasional sebagai cadangan', () => {
-    // Penanganan krisis tidak boleh bergantung pada satu nomor saja.
+  it('memuat minimal dua jalur bantuan', () => {
+    // Penanganan krisis tidak boleh bergantung pada satu titik saja.
     expect(KONTAK_KRISIS.length).toBeGreaterThanOrEqual(2)
-    expect(KONTAK_KRISIS).toContain(KONTAK_LOKAL)
-    expect(KONTAK_KRISIS).toContain(KONTAK_NASIONAL)
+    expect(KONTAK_KRISIS).toContain(KONTAK_SEJIWA)
+    expect(KONTAK_KRISIS).toContain(KONTAK_DARURAT)
   })
 
-  it('kontak lokal tampil lebih dulu', () => {
-    expect(KONTAK_KRISIS[0]).toBe(KONTAK_LOKAL)
+  it('SEJIWA tampil lebih dulu daripada gawat darurat umum', () => {
+    // Untuk krisis kesehatan jiwa, konseling adalah jalur pertama.
+    expect(KONTAK_KRISIS[0]).toBe(KONTAK_SEJIWA)
   })
 
   it('setiap kontak punya nama, keterangan, nomor, dan tampilan', () => {
@@ -33,7 +34,7 @@ describe('daftar kontak krisis', () => {
     }
   })
 
-  it('nomor hanya berisi angka (tanpa spasi, tanda hubung, atau plus)', () => {
+  it('nomor hanya berisi angka, tanpa spasi/tanda hubung/plus', () => {
     // Tautan tel:/wa.me akan rusak bila nomor memuat pemisah.
     for (const k of KONTAK_KRISIS) {
       expect(k.nomor, `${k.nama}.nomor`).toMatch(/^\d+$/)
@@ -49,17 +50,41 @@ describe('daftar kontak krisis', () => {
       ).toBe(true)
     }
   })
+
+  it('tidak ada nomor seluler pribadi yang tertinggal', () => {
+    // Nomor pribadi tidak dapat menjamin ketersediaan 24 jam, sehingga
+    // tidak layak dipakai pada jalur krisis. Hanya layanan resmi.
+    for (const k of KONTAK_KRISIS) {
+      expect(
+        k.nomor.startsWith('628'),
+        `${k.nama} memakai nomor seluler pribadi (${k.nomor})`,
+      ).toBe(false)
+    }
+  })
+
+  it('keterangan menyebut ketersediaan layanan secara jujur', () => {
+    // Pasien harus tahu apakah nomor aktif 24 jam atau hanya jam kerja.
+    for (const k of KONTAK_KRISIS) {
+      expect(
+        /24 jam|WIB|WITA|WIT|Senin|jam/i.test(k.keterangan),
+        `${k.nama}.keterangan tidak menyebut ketersediaan`,
+      ).toBe(true)
+    }
+  })
 })
 
 describe('tautanTelepon', () => {
-  it('nomor internasional diberi awalan +', () => {
-    expect(tautanTelepon(KONTAK_LOKAL)).toBe('tel:+6285173358826')
-  })
-
   it('nomor layanan pendek TIDAK diberi awalan +', () => {
     // 'tel:+119' tidak dapat didial oleh ponsel — ini pernah salah.
-    expect(tautanTelepon(KONTAK_NASIONAL)).toBe('tel:119')
-    expect(tautanTelepon(KONTAK_NASIONAL)).not.toContain('+')
+    expect(tautanTelepon(KONTAK_SEJIWA)).toBe('tel:119')
+    expect(tautanTelepon(KONTAK_SEJIWA)).not.toContain('+')
+    expect(tautanTelepon(KONTAK_DARURAT)).toBe('tel:119')
+  })
+
+  it('nomor internasional diberi awalan +', () => {
+    // Menjaga jalur ini tetap benar bila nomor Puskesmas ditambahkan.
+    const contoh = { nomor: '6285173358826', internasional: true }
+    expect(tautanTelepon(contoh)).toBe('tel:+6285173358826')
   })
 
   it('semua kontak menghasilkan tautan tel: yang valid', () => {
@@ -70,40 +95,20 @@ describe('tautanTelepon', () => {
 })
 
 describe('tautanWhatsApp', () => {
-  it('memakai domain wa.me dengan nomor E.164 tanpa plus', () => {
-    expect(tautanWhatsApp(KONTAK_LOKAL)).toMatch(
-      /^https:\/\/wa\.me\/6285173358826\?text=/,
-    )
+  it('tidak ada kontak krisis saat ini yang memakai WhatsApp', () => {
+    // Nomor layanan pendek 119 tidak punya WhatsApp. Tombolnya tidak
+    // boleh muncul, karena tautan wa.me/119 mengarah ke ketiadaan.
+    for (const k of KONTAK_KRISIS) {
+      expect(k.whatsapp, `${k.nama}.whatsapp`).toBe(false)
+    }
   })
 
-  it('menyertakan pesan pembuka yang sudah ter-encode', () => {
-    const url = tautanWhatsApp(KONTAK_LOKAL)
+  it('membentuk tautan wa.me yang benar bila nanti dipakai', () => {
+    const contoh = { nomor: '6285173358826', whatsapp: true }
+    const url = tautanWhatsApp(contoh)
+    expect(url).toMatch(/^https:\/\/wa\.me\/6285173358826\?text=/)
     const text = new URL(url).searchParams.get('text')
     expect(text).toBeTruthy()
     expect(text).toContain('skrining')
-  })
-
-  it('hanya kontak berpenanda whatsapp yang boleh dipakai', () => {
-    // Menghindari tautan WhatsApp ke nomor layanan pendek seperti 119.
-    expect(KONTAK_LOKAL.whatsapp).toBe(true)
-    expect(KONTAK_NASIONAL.whatsapp).toBe(false)
-  })
-})
-
-describe('penanda nomor sementara', () => {
-  /**
-   * Test ini SENGAJA gagal setelah nomor resmi dipasang, sebagai
-   * pengingat untuk menghapus penanda `sementara` dan blok TODO
-   * di src/constants/kontakKrisis.js.
-   *
-   * Bila test ini gagal karena nomor sudah resmi: ubah `sementara`
-   * menjadi false dan sesuaikan test ini.
-   */
-  it('[SEMENTARA] kontak lokal masih memakai nomor non-resmi', () => {
-    expect(KONTAK_LOKAL.sementara).toBe(true)
-  })
-
-  it('jalur nasional bukan nomor sementara', () => {
-    expect(KONTAK_NASIONAL.sementara).toBe(false)
   })
 })

@@ -1,66 +1,79 @@
 /**
- * kontak-krisis.js — Nomor bantuan untuk situasi krisis kesehatan jiwa.
+ * kontakKrisis.js — Nomor bantuan untuk situasi krisis kesehatan jiwa.
  *
  * Dipakai oleh PanelKrisis.vue, yang muncul saat responden mengakui
  * pikiran mencelakai diri sendiri (EPDS item 10, nilai >= NILAI_KRISIS_E10)
  * atau saat hasil skrining tergolong High Risk.
  *
  * ────────────────────────────────────────────────────────────────
- * PERINGATAN — SATU NOMOR MASIH SEMENTARA
+ * KEPUTUSAN: HANYA JALUR RESMI
  *
- * KONTAK_LOKAL di bawah adalah nomor sementara dan HARUS diganti
- * dengan nomor resmi UPTD Puskesmas Sekadau sebelum aplikasi dipakai
- * secara luas. Nomor pada jalur krisis yang tidak terjawab berarti
- * seseorang dengan pikiran bunuh diri menelepon ke kehampaan.
+ * Nomor seluler sementara (nomor pribadi petugas) sudah DIHAPUS dari
+ * berkas ini. Alasannya: nomor pada jalur krisis yang tidak dijawab
+ * berarti seseorang dengan pikiran bunuh diri menelepon ke kehampaan,
+ * dan nomor pribadi tidak dapat menjamin ketersediaan 24 jam.
  *
- * Saat menggantinya, pastikan:
- *   1. Nomor dijawab manusia, bukan mesin penjawab
- *   2. Tersedia 24 jam, atau cantumkan jam layanan secara jujur
- *   3. Petugas yang menjawab tahu ini jalur krisis kesehatan jiwa
- *   4. Pemilik nomor mengetahui nomornya tampil publik
+ * Yang tersisa adalah layanan resmi Kementerian Kesehatan:
+ *   - SEJIWA (119 ekstensi 8) — konseling kesehatan jiwa, 24 jam
+ *   - 119                     — gawat darurat medis
  *
- * KONTAK_NASIONAL sengaja didampingkan sebagai cadangan: bila nomor
- * lokal tidak terjawab, pasien masih punya jalur nasional. Jangan
- * menggantungkan penanganan krisis pada satu titik saja.
+ * MENAMBAH NOMOR PUSKESMAS DI KEMUDIAN HARI
+ * Boleh, dan sebaiknya ditaruh PALING ATAS agar pasien lebih dahulu
+ * terhubung ke layanan setempat. Syarat yang harus dipenuhi:
+ *   1. Dijawab manusia, bukan mesin penjawab.
+ *   2. Tersedia 24 jam. Bila hanya jam kerja, tulis jam layanannya
+ *      secara jujur di kolom `keterangan` — jangan biarkan pasien
+ *      menduga nomor itu selalu aktif.
+ *   3. Petugas yang menjawab tahu ini jalur krisis kesehatan jiwa.
+ *   4. Pemilik nomor mengetahui nomornya tampil publik.
+ *
+ * Contoh bentuk entri Puskesmas:
+ *
+ *   export const KONTAK_LOKAL = {
+ *     nama: 'UPTD Puskesmas Sekadau',
+ *     keterangan: 'Poli jiwa / IGD — Senin s.d. Jumat, 07.00-14.00 WIB',
+ *     nomor: '62XXXXXXXXXXX',
+ *     tampilan: '+62 XXX-XXXX-XXXX',
+ *     internasional: true,
+ *     whatsapp: true,
+ *   }
+ *
+ * lalu masukkan ke KONTAK_KRISIS sebagai elemen pertama.
+ * Jangan pernah menyisakan hanya satu jalur: bila nomor setempat tidak
+ * terjawab, jalur nasional harus tetap ada sebagai cadangan.
  * ────────────────────────────────────────────────────────────────
  */
 
 /**
- * Kontak Puskesmas setempat.
- * TODO: ganti dengan nomor resmi UPTD Puskesmas Sekadau (lihat peringatan di atas).
+ * SEJIWA — layanan konseling kesehatan jiwa Kementerian Kesehatan,
+ * diakses melalui nomor darurat 119 lalu memilih ekstensi 8.
  */
-export const KONTAK_LOKAL = {
-  nama: 'UPTD Puskesmas Sekadau',
-  keterangan: 'Layanan kesehatan jiwa / IGD',
-  // Format E.164 tanpa tanda plus, untuk tautan tel: dan wa.me
-  nomor: '6285173358826',
-  // Tampilan yang mudah dibaca dan diucapkan
-  tampilan: '+62 851-7335-8826',
-  // Nomor internasional -> tautan tel: diberi awalan '+'
-  internasional: true,
-  // Nomor ini berupa telepon seluler, jadi WhatsApp tersedia
-  whatsapp: true,
-  sementara: true,
+export const KONTAK_SEJIWA = {
+  nama: 'SEJIWA — Kemenkes',
+  keterangan: 'Konseling kesehatan jiwa, 24 jam. Tekan 119 lalu pilih ekstensi 8.',
+  nomor: '119',
+  tampilan: '119 ext. 8',
+  // Nomor layanan pendek: JANGAN diberi awalan '+', karena 'tel:+119'
+  // tidak dapat didial oleh ponsel.
+  internasional: false,
+  whatsapp: false,
 }
 
 /**
- * Hotline nasional kesehatan jiwa Kementerian Kesehatan (SEJIWA),
- * melalui layanan darurat 119 lalu pilih ekstensi 8.
+ * Layanan gawat darurat medis nasional. Ditampilkan terpisah dari SEJIWA
+ * karena pasien dalam bahaya langsung perlu ambulans, bukan konseling.
  */
-export const KONTAK_NASIONAL = {
-  nama: 'SEJIWA — Kemenkes',
-  keterangan: 'Hotline nasional kesehatan jiwa, 24 jam',
+export const KONTAK_DARURAT = {
+  nama: 'Gawat Darurat Nasional',
+  keterangan: 'Ambulans dan kegawatdaruratan medis, 24 jam.',
   nomor: '119',
-  tampilan: '119 ext. 8',
-  // Nomor layanan pendek: JANGAN diberi awalan '+', karena
-  // 'tel:+119' tidak dapat didial oleh ponsel.
+  tampilan: '119',
   internasional: false,
   whatsapp: false,
-  sementara: false,
 }
 
-/** Urutan tampil di panel krisis: lokal dulu, lalu jalur nasional. */
-export const KONTAK_KRISIS = [KONTAK_LOKAL, KONTAK_NASIONAL]
+/** Urutan tampil di panel krisis. */
+export const KONTAK_KRISIS = [KONTAK_SEJIWA, KONTAK_DARURAT]
 
 /**
  * Tautan panggilan telepon untuk sebuah kontak.
@@ -75,6 +88,9 @@ export function tautanTelepon(kontak) {
 /**
  * Tautan WhatsApp dengan pesan pembuka yang sudah terisi, sehingga
  * pasien tidak perlu memikirkan cara memulai percakapan.
+ *
+ * Hanya untuk kontak yang benar-benar punya WhatsApp. Nomor layanan
+ * pendek seperti 119 tidak punya.
  */
 export function tautanWhatsApp(kontak) {
   const pesan = encodeURIComponent(
