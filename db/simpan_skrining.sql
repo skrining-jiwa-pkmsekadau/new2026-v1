@@ -31,6 +31,7 @@ DECLARE
   v_gad2 INT;
   v_total_epds INT;
   v_flag_e10 BOOLEAN;
+  v_nilai_e10 INT;
   v_jwb JSONB;
 BEGIN
   v_instrumen := payload_data->>'instrumen';
@@ -104,35 +105,54 @@ BEGIN
     v_skor_detail := jsonb_build_object('skor_phq2', v_phq2, 'skor_gad2', v_gad2);
 
   -- ========== EPDS ==========
+  -- Juknis KJ.02.05/B.III/92/2025 hal. 11:
+  --   0-12 : tidak menunjukkan gejala signifikan
+  --          (9-12 -> tambahkan anjuran skrining ulang pada ANC berikutnya)
+  --   >=13 : terindikasi kemungkinan gejala depresi
+  --   <13 namun item 10 dijawab "Ya, agak sering" (nilai 3) -> setara >=13
+  --
+  -- Ambang ini WAJIB sama dengan NILAI_ESKALASI_E10 di src/utils/skoring.js.
+  -- Dijaga oleh tests/kontrak-jawaban.test.js.
   ELSIF v_instrumen = 'EPDS' THEN
     v_total_epds := 0;
-    v_flag_e10 := FALSE;
+    v_nilai_e10 := 0;
 
     FOR i IN 0..9 LOOP
       v_jwb := v_jawaban->i;
       v_total_epds := v_total_epds + (v_jwb->>'value')::INT;
-      IF v_jwb->>'id' = 'E10' AND (v_jwb->>'value')::INT = 3 THEN
-        v_flag_e10 := TRUE;
+      IF v_jwb->>'id' = 'E10' THEN
+        v_nilai_e10 := (v_jwb->>'value')::INT;
       END IF;
     END LOOP;
+
+    -- Hanya nilai 3 ("Ya, agak sering") yang mengeskalasi risiko.
+    -- Nilai 1 dan 2 tidak mengeskalasi, tetapi client tetap memunculkan
+    -- panel krisis lewat NILAI_KRISIS_E10 = 2.
+    v_flag_e10 := COALESCE(v_nilai_e10, 0) >= 3;
 
     v_skor_total := v_total_epds;
 
     IF v_total_epds >= 13 OR v_flag_e10 THEN 
       v_tingkat_risiko := 'High Risk';
-      v_kesimpulan_klinis := 'Hasil skrining EPDS mengindikasikan kemungkinan gejala depresi pada ibu hamil/nifas (skor ≥ 13 atau Q10 positif). Diperlukan penanganan segera.';
+      v_kesimpulan_klinis := 'Hasil skrining EPDS mengindikasikan kemungkinan gejala depresi pada ibu hamil/nifas (skor ≥ 13 atau jawaban "Ya, agak sering" pada pertanyaan 10). Diperlukan penanganan segera.';
       v_rekomendasi := '["Konseling awal segera oleh Perawat atau Bidan yang bersifat suportif.", "Pemeriksaan kesehatan jiwa untuk menegakkan diagnosis oleh Dokter atau Psikolog Klinis.", "Tatalaksana komprehensif sesuai kompetensi tenaga medis dan kesehatan di Puskesmas.", "Segera rujuk ke FKTL jika ada indikasi membahayakan diri sendiri atau orang lain.", "Pastikan pendampingan intensif dari keluarga terdekat selama proses pemulihan."]'::JSONB;
     ELSIF v_total_epds >= 9 THEN 
       v_tingkat_risiko := 'Low Risk';
-      v_kesimpulan_klinis := 'Skor EPDS 9–12 menunjukkan gejala yang perlu dipantau. Lakukan skrining ulang pada kunjungan ANC berikutnya.';
-      v_rekomendasi := '["Berikan edukasi kesehatan jiwa: tanda sehat jiwa, faktor protektif, latihan manajemen stres.", "Lakukan skrining ulang EPDS pada kunjungan ANC berikutnya.", "Pantau kondisi ibu secara berkala oleh Bidan atau Perawat.", "Tingkatkan dukungan sosial dan emosional dari keluarga terdekat."]'::JSONB;
+      v_kesimpulan_klinis := 'Hasil skrining EPDS tidak menunjukkan gejala depresi yang signifikan (skor 0-12). Karena skor berada pada rentang 9-12, lakukan skrining ulang pada kunjungan ANC berikutnya.';
+      v_rekomendasi := '["Berikan edukasi kesehatan jiwa: tanda sehat jiwa pada ibu, faktor protektif, latihan manajemen dan coping stress.", "Edukasi pengasuhan positif.", "Skor 9-12: lakukan skrining ulang pada kunjungan ANC berikutnya.", "Pantau kondisi ibu secara berkala oleh Bidan atau Perawat.", "Tingkatkan dukungan sosial dan emosional dari keluarga terdekat."]'::JSONB;
     ELSE 
       v_tingkat_risiko := 'Low Risk';
-      v_kesimpulan_klinis := 'Hasil skrining EPDS tidak menunjukkan gejala depresi yang signifikan (skor 0–8).';
+      v_kesimpulan_klinis := 'Hasil skrining EPDS tidak menunjukkan gejala depresi yang signifikan (skor 0-12).';
       v_rekomendasi := '["Edukasi kesehatan jiwa: tanda sehat jiwa pada ibu dan faktor protektif kesehatan jiwa.", "Latihan manajemen stres dan coping stress yang sehat selama masa kehamilan/nifas.", "Edukasi pengasuhan positif dan perawatan bayi yang menyenangkan.", "Jaga dukungan sosial dari keluarga dan tenaga kesehatan."]'::JSONB;
     END IF;
 
-    v_skor_detail := jsonb_build_object('flag_e10', v_flag_e10);
+    -- nilai_e10 disimpan mentah untuk audit klinis dan agar UI dapat
+    -- memunculkan panel krisis pada record yang dimuat ulang dari DB.
+    v_skor_detail := jsonb_build_object(
+      'flag_e10', v_flag_e10,
+      'nilai_e10', v_nilai_e10,
+      'perlu_skrining_ulang', (v_total_epds BETWEEN 9 AND 12 AND NOT v_flag_e10)
+    );
 
   ELSE
     RAISE EXCEPTION 'Instrumen tidak dikenali: %', v_instrumen;

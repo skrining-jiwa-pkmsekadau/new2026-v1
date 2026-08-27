@@ -1,11 +1,82 @@
 /* ===== GOOGLE FONTS ===== */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
 
 /* ===== TAILWIND LAYERS ===== */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ===== CSS VARIABLES: HEALING CALM THEME ===== */
+:root {
+  /* Primary — Deep professional blue */
+  --color-primary: #0f4b80;
+  --color-primary-light: #1a6bb5;
+  --color-primary-dark: #0a355c;
+  --color-primary-50: #eef6ff;
+  --color-primary-100: #d9ecff;
+  --color-primary-200: #b3d9ff;
+
+  /* Accent — Calm teal (healing, trust) */
+  --color-accent: #0d9488;
+  --color-accent-light: #14b8a6;
+  --color-accent-50: #f0fdfa;
+
+  /* Surface — Warm neutrals */
+  --color-surface: #ffffff;
+  --color-surface-soft: #f8fafb;
+  --color-background: #f0f7ff;
+  --color-background-warm: #fafcfe;
+
+  /* Text */
+  --color-text: #1e293b;
+  --color-text-muted: #64748b;
+  --color-text-subtle: #94a3b8;
+
+  /* Borders */
+  --color-border: #e2e8f0;
+  --color-border-light: #f1f5f9;
+
+  /* Risk Colors */
+  --color-risk-high: #dc2626;
+  --color-risk-moderate: #d97706;
+  --color-risk-low: #059669;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(15, 75, 128, 0.04), 0 1px 2px rgba(15, 75, 128, 0.02);
+  --shadow-md: 0 4px 12px rgba(15, 75, 128, 0.06), 0 2px 4px rgba(15, 75, 128, 0.03);
+  --shadow-lg: 0 12px 32px rgba(15, 75, 128, 0.08), 0 4px 8px rgba(15, 75, 128, 0.04);
+  --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.12);
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* Transitions */
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ===== NOISE TEXTURE OVERLAY ===== */
+.noise-texture::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ===== GRADIENT MESH BACKGROUND ===== */
+.gradient-mesh {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(59, 130, 246, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(13, 148, 136, 0.03) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 80%, rgba(139, 92, 246, 0.02) 0%, transparent 50%),
+    var(--color-background);
+}
 
 /* ===== SCROLLBAR ===== */
 ::-webkit-scrollbar {
@@ -226,6 +297,75 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* ===== MICRO-INTERACTIONS: Page Enter ===== */
+@keyframes pageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: pageSlideIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ===== MICRO-INTERACTIONS: Card Enter (staggered) ===== */
+@keyframes cardFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.card-enter {
+  opacity: 0;
+  animation: cardFadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.card-enter-1 { animation-delay: 0.1s; }
+.card-enter-2 { animation-delay: 0.2s; }
+.card-enter-3 { animation-delay: 0.3s; }
+.card-enter-4 { animation-delay: 0.4s; }
+
+/* ===== MICRO-INTERACTIONS: Button Press ===== */
+.btn-press:active {
+  transform: scale(0.97);
+  transition: transform 0.1s ease;
+}
+
+/* ===== MICRO-INTERACTIONS: Input Focus Glow ===== */
+.input-glow:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12), 0 1px 2px rgba(0, 0, 0, 0.05);
+  border-color: #3b82f6;
+  transition: all 0.25s ease;
+}
+
+/* ===== MICRO-INTERACTIONS: Success Pulse ===== */
+@keyframes successPulse {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.success-pulse {
+  animation: successPulse 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ===== MICRO-INTERACTIONS: Hover Lift ===== */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px -8px rgba(15, 75, 128, 0.15);
 }
 
 /* ===== TOGGLE (Pengaturan) ===== */

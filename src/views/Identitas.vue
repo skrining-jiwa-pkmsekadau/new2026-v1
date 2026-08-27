@@ -149,12 +149,114 @@
               >
                 {{ form.nik.length }} / 16 digit
               </p>
-              <!-- NIK Riwayat Banner -->
+              <!-- Banner riwayat NIK.
+                   Dirender dengan markup biasa + state reaktif, bukan
+                   v-html, sehingga tidak ada jalur injeksi HTML pada
+                   form publik ini. -->
               <div
-                v-if="nikStatus.html"
-                class="mt-2"
-                v-html="nikStatus.html"
-              ></div>
+                v-if="nikStatus.memeriksa"
+                class="mt-2 flex items-center gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-500"
+                role="status"
+                aria-live="polite"
+              >
+                <span
+                  aria-hidden="true"
+                  class="material-symbols-outlined text-[15px] animate-spin"
+                  >progress_activity</span
+                >
+                Memeriksa riwayat...
+              </div>
+
+              <div
+                v-else-if="nikStatus.status === 'diblokir'"
+                class="mt-2 p-3 rounded-xl bg-rose-50 border-2 border-rose-200"
+                role="status"
+                aria-live="polite"
+              >
+                <div class="flex items-center gap-2 mb-2">
+                  <span
+                    aria-hidden="true"
+                    class="material-symbols-outlined text-rose-500 text-[18px]"
+                    >block</span
+                  >
+                  <p class="text-xs font-bold text-rose-700">
+                    Skrining Belum Dapat Dilakukan
+                  </p>
+                </div>
+                <p class="text-[11px] text-rose-700 mb-2.5 leading-relaxed">
+                  NIK ini belum dapat digunakan untuk skrining ulang karena
+                  masih dalam masa jeda 90 hari.<br />
+                  Dapat skrining kembali mulai:
+                  <span class="font-bold text-rose-900 text-[13px]">{{
+                    nikStatus.tanggalBoleh
+                  }}</span>
+                  <span
+                    v-if="nikStatus.sisaHari !== null"
+                    class="ml-1 px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold text-[10px]"
+                    >sisa {{ nikStatus.sisaHari }} hari</span
+                  >
+                </p>
+                <p class="text-[10px] text-rose-500 italic">
+                  Skrining hanya dapat dilakukan 1x dalam 90 hari.
+                </p>
+              </div>
+
+              <div
+                v-else-if="nikStatus.status === 'boleh_ulang'"
+                class="mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200"
+                role="status"
+                aria-live="polite"
+              >
+                <div class="flex items-center gap-2">
+                  <span
+                    aria-hidden="true"
+                    class="material-symbols-outlined text-emerald-500 text-[16px]"
+                    >check_circle</span
+                  >
+                  <p class="text-xs font-bold text-emerald-700">
+                    NIK dapat digunakan untuk skrining ulang.
+                  </p>
+                </div>
+                <p
+                  v-if="nikStatus.terisiOtomatis"
+                  class="text-[10px] text-emerald-600 mt-1.5 italic"
+                >
+                  Data identitas terakhir sudah diisi otomatis. Silakan periksa
+                  kembali sebelum lanjut ke kuesioner.
+                </p>
+                <p v-else class="text-[10px] text-emerald-600 mt-1.5 italic">
+                  Detail riwayat hanya dapat dilihat oleh admin melalui
+                  dashboard.
+                </p>
+              </div>
+
+              <div
+                v-else-if="nikStatus.status === 'baru'"
+                class="mt-2 flex items-center gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-700"
+                role="status"
+                aria-live="polite"
+              >
+                <span
+                  aria-hidden="true"
+                  class="material-symbols-outlined text-[15px]"
+                  >check_circle</span
+                >
+                NIK dapat digunakan untuk skrining.
+              </div>
+
+              <div
+                v-else-if="nikStatus.status === 'gagal'"
+                class="mt-2 flex items-center gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-500"
+                role="status"
+                aria-live="polite"
+              >
+                <span
+                  aria-hidden="true"
+                  class="material-symbols-outlined text-[15px]"
+                  >wifi_off</span
+                >
+                Tidak dapat memeriksa riwayat.
+              </div>
             </div>
 
             <!-- Tanggal Lahir + Usia -->
@@ -885,24 +987,83 @@ async function isiIdentitasDariRiwayat(riwayat) {
   sedangIsiRiwayat = false;
   identitasDariRiwayat.value = true;
 }
-// ── NIK Checking ──
-const nikStatus = ref({ html: "", checking: false });
+// ── Pemeriksaan riwayat NIK ──
+//
+// Dua RPC dengan tingkat akses berbeda (lihat db/02_pisah_identitas.sql):
+//
+//   cek_riwayat_nik(p_nik)      → anon boleh. HANYA data tanggal:
+//       { tanggal_skrining, tanggal_boleh_skrining_ulang,
+//         boleh_skrining_ulang }
+//       Dipakai untuk gate jeda 90 hari di form publik.
+//
+//   ambil_identitas_nik(p_nik)  → HANYA admin yang login. Identitas
+//       lengkap untuk mengisi form otomatis.
+//
+// Pemisahan ini wajib: fungsi lama mengembalikan 19 kolom termasuk nama,
+// alamat, dan nomor HP kepada pemanggil anonim, sehingga siapa pun yang
+// memegang anon key dapat memanen identitas pasien dari NIK saja.
+//
+// Konsekuensi yang disengaja: autofill hanya bekerja bila petugas login
+// sebagai admin. Pasien yang mengisi sendiri tidak mendapat autofill.
+const nikStatus = ref({
+  // 'kosong' | 'baru' | 'diblokir' | 'boleh_ulang' | 'gagal'
+  status: "kosong",
+  memeriksa: false,
+  tanggalBoleh: "",
+  sisaHari: null,
+  terisiOtomatis: false,
+});
 let nikDebounce = null;
+
+function resetStatusNik() {
+  nikStatus.value = {
+    status: "kosong",
+    memeriksa: false,
+    tanggalBoleh: "",
+    sisaHari: null,
+    terisiOtomatis: false,
+  };
+  store.nikDiblokir = false;
+  store.tanggalBolehSkrining = null;
+}
 
 function onNikInput() {
   form.value.nik = form.value.nik.replace(/\D/g, "");
   clearTimeout(nikDebounce);
   if (form.value.nik.length < 16) {
-    nikStatus.value.html = "";
-    store.nikDiblokir = false;
-    store.tanggalBolehSkrining = null;
+    resetStatusNik();
     kosongkanIdentitasRiwayat();
     return;
   }
-  nikStatus.value.checking = true;
-  nikStatus.value.html = `<div class="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-500">
-    <span class="material-symbols-outlined text-[15px] animate-spin">progress_activity</span>Memeriksa riwayat...</div>`;
+  nikStatus.value.memeriksa = true;
   nikDebounce = setTimeout(() => cekRiwayatNIK(form.value.nik), 600);
+}
+
+/** Selisih hari kalender antara dua tanggal 'YYYY-MM-DD', bebas zona waktu. */
+function selisihHariKalender(dariISO, sampaiISO) {
+  const [y1, m1, d1] = dariISO.split("-").map(Number);
+  const [y2, m2, d2] = sampaiISO.split("-").map(Number);
+  return Math.round(
+    (Date.UTC(y1, m1 - 1, d1) - Date.UTC(y2, m2 - 1, d2)) / 86400000,
+  );
+}
+
+/**
+ * Coba isi form dari riwayat. Hanya berhasil bila sesi aktif milik admin;
+ * bila tidak, RPC menolak dan form dibiarkan kosong tanpa pesan error
+ * — bagi pasien anonim ini perilaku normal, bukan kegagalan.
+ *
+ * @returns {Promise<boolean>} true bila form benar-benar terisi
+ */
+async function cobaIsiOtomatis(nik) {
+  try {
+    const { data, error } = await db.rpc("ambil_identitas_nik", { p_nik: nik });
+    if (error || !data || data.length === 0) return false;
+    await isiIdentitasDariRiwayat(data[0]);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function cekRiwayatNIK(nik) {
@@ -910,68 +1071,67 @@ async function cekRiwayatNIK(nik) {
   store.tanggalBolehSkrining = null;
   try {
     const { data, error } = await db.rpc("cek_riwayat_nik", { p_nik: nik });
+    if (error) throw error;
 
-    if (error) {
-      throw error;
-    }
-
+    // Belum pernah diskrining.
     if (!data || data.length === 0) {
       kosongkanIdentitasRiwayat();
-      nikStatus.value.html = `<div class="flex items-center gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-700">
-        <span class="material-symbols-outlined text-[15px]">check_circle</span>NIK dapat digunakan untuk skrining.</div>`;
+      nikStatus.value = {
+        status: "baru",
+        memeriksa: false,
+        tanggalBoleh: "",
+        sisaHari: null,
+        terisiOtomatis: false,
+      };
       return;
     }
-    const BATAS_HARI = 90;
-    const tglTerakhir = new Date(data[0].tanggal_skrining);
-    const tglTerakhirUtc = Date.UTC(
-      tglTerakhir.getFullYear(),
-      tglTerakhir.getMonth(),
-      tglTerakhir.getDate(),
-    );
-    const hariIniDate = new Date();
-    const hariIniUtc = Date.UTC(
-      hariIniDate.getFullYear(),
-      hariIniDate.getMonth(),
-      hariIniDate.getDate(),
-    );
-    const selisihHari = Math.floor(
-      (hariIniUtc - tglTerakhirUtc) / (1000 * 60 * 60 * 24),
-    );
-    const sisaHari = BATAS_HARI - selisihHari;
-    const tglBoleh = new Date(tglTerakhir);
-    tglBoleh.setDate(tglTerakhir.getDate() + BATAS_HARI);
 
+    const riwayat = data[0];
+    const tglBolehISO = riwayat.tanggal_boleh_skrining_ulang;
 
-    if (sisaHari > 0) {
+    // Keputusan jeda 90 hari berasal dari SERVER, bukan hitungan tanggal
+    // di browser. Jam perangkat pasien tidak lagi menentukan siapa yang
+    // boleh diskrining.
+    if (riwayat.boleh_skrining_ulang === false) {
+      kosongkanIdentitasRiwayat();
+      nikStatus.value = {
+        status: "diblokir",
+        memeriksa: false,
+        tanggalBoleh: formatTanggalID(tglBolehISO),
+        sisaHari: tglBolehISO
+          ? selisihHariKalender(tglBolehISO, hariIni())
+          : null,
+        terisiOtomatis: false,
+      };
       store.nikDiblokir = true;
-      store.tanggalBolehSkrining = tglBoleh;
-      nikStatus.value.html = `<div class="p-3 rounded-xl bg-rose-50 border-2 border-rose-200">
-        <div class="flex items-center gap-2 mb-2"><span class="material-symbols-outlined text-rose-500 text-[18px]">block</span>
-        <p class="text-xs font-bold text-rose-700">Skrining Belum Dapat Dilakukan</p></div>
-        <p class="text-[11px] text-rose-700 mb-2.5 leading-relaxed">NIK ini belum dapat digunakan untuk skrining ulang karena masih dalam masa jeda 90 hari.<br>
-        Dapat skrining kembali mulai: <span class="font-bold text-rose-900 text-[13px]">${formatTanggalID(tglBoleh.toISOString())}</span>
-        <span class="ml-1 px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold text-[10px]">sisa ${sisaHari} hari</span></p>
-        <p class="text-[10px] text-rose-500 italic">Skrining hanya dapat dilakukan 1x dalam 90 hari.</p></div>`;
-    } else {
-      store.nikDiblokir = false;
-      await isiIdentitasDariRiwayat(data[0]);
-      nikStatus.value.html = `<div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
-        <div class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-500 text-[16px]">check_circle</span>
-        <p class="text-xs font-bold text-emerald-700">NIK dapat digunakan untuk skrining ulang.</p></div>
-        <p class="text-[10px] text-emerald-600 mt-1.5 italic">Data identitas terakhir sudah diisi otomatis. Silakan periksa kembali sebelum lanjut ke kuesioner.</p></div>`;
+      store.tanggalBolehSkrining = tglBolehISO;
+      return;
     }
-  } catch (err) {
-    console.error("[cekRiwayatNIK]", err);
-    nikStatus.value.html = `<div class="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-500">
-      <span class="material-symbols-outlined text-[15px]">wifi_off</span>Tidak dapat memeriksa riwayat.</div>`;
-  } finally {
-    nikStatus.value.checking = false;
+
+    const terisi = await cobaIsiOtomatis(nik);
+    nikStatus.value = {
+      status: "boleh_ulang",
+      memeriksa: false,
+      tanggalBoleh: "",
+      sisaHari: null,
+      terisiOtomatis: terisi,
+    };
+  } catch {
+    // Gagal memeriksa: jangan blokir pasien karena gangguan jaringan.
+    // Gate 90 hari tetap ditegakkan di server saat penyimpanan.
+    nikStatus.value = {
+      status: "gagal",
+      memeriksa: false,
+      tanggalBoleh: "",
+      sisaHari: null,
+      terisiOtomatis: false,
+    };
   }
 }
 
 // ── Submit ──
 function submitIdentitas() {
-  if (nikStatus.value.checking)
+  if (nikStatus.value.memeriksa)
     return showToast(
       "Sedang memeriksa riwayat NIK, mohon tunggu...",
       "warning",
@@ -1010,8 +1170,10 @@ function submitIdentitas() {
   }
 
   if (store.nikDiblokir) {
+    // tanggalBolehSkrining kini string 'YYYY-MM-DD' dari server,
+    // bukan objek Date. formatTanggalID menerima string ISO.
     const tglBoleh = store.tanggalBolehSkrining
-      ? formatTanggalID(store.tanggalBolehSkrining.toISOString())
+      ? formatTanggalID(store.tanggalBolehSkrining)
       : "-";
     showToast(
       `Skrining belum dapat dilakukan. Jadwal berikutnya: ${tglBoleh}`,

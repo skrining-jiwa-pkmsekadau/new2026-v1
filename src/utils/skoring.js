@@ -1,7 +1,33 @@
 /**
- * skoring.js — Logika penghitungan skor dan interpretasi hasil skrining
- * Disesuaikan dengan Pedoman Skrining Kesehatan Jiwa (PDF 03-12 & 04-11)
+ * skoring.js — Logika penghitungan skor dan interpretasi hasil skrining.
+ *
+ * Sumber aturan (Juknis Kemenkes, berkas ada di folder "panduan/"):
+ *   - MMYS V.1 : Surat KJ.02.02/B.III/1107/2025, 10 Juli 2025, hal. 7–8
+ *   - PHQ-4    : Surat KJ.02.05/B.III/92/2025, 10 Februari 2025, hal. 5
+ *   - EPDS     : Surat KJ.02.05/B.III/92/2025, 10 Februari 2025, hal. 11
+ *
+ * PENTING: ambang di berkas ini WAJIB sama dengan db/simpan_skrining.sql.
+ * Berkas ini menentukan yang DILIHAT pasien, SQL menentukan yang
+ * DISIMPAN. Bila berbeda, laporan dan surat rujukan akan bertentangan
+ * dengan hasil di layar. tests/skoring.test.js menjaga keduanya sinkron.
  */
+
+/**
+ * Nilai jawaban item 10 EPDS yang MENGESKALASI tingkat risiko menjadi
+ * "terindikasi depresi" — sesuai juknis hal. 11, hanya jawaban
+ * "Ya, agak sering".
+ */
+export const NILAI_ESKALASI_E10 = 3
+
+/**
+ * Nilai jawaban item 10 EPDS yang MEMUNCULKAN BANTUAN KRISIS di UI.
+ *
+ * Lebih rendah dari ambang eskalasi: jawaban "Kadang-kadang" (2) tidak
+ * menaikkan klasifikasi risiko, tetapi tetap merupakan pengakuan
+ * pikiran mencelakai diri sehingga wajib mendapat nomor bantuan.
+ * Ini keputusan keselamatan, bukan klasifikasi klinis.
+ */
+export const NILAI_KRISIS_E10 = 2
 
 // ================================================================
 // SKORING — MMYS ANAK & REMAJA
@@ -75,15 +101,37 @@ export function skorPHQ4(answers) {
 // SKORING — EPDS
 // ================================================================
 /**
+ * Skoring EPDS sesuai Juknis Kemenkes KJ.02.05/B.III/92/2025 hal. 11.
+ *
+ *   0–12 : tidak menunjukkan gejala signifikan
+ *          (9–12 → tambahkan anjuran skrining ulang pada ANC berikutnya)
+ *   ≥ 13 : terindikasi kemungkinan gejala depresi
+ *   < 13 namun item 10 dijawab "Ya, agak sering" → tindak lanjut setara ≥ 13
+ *
+ * DUA AMBANG YANG SENGAJA DIPISAH pada item 10:
+ *   NILAI_ESKALASI_E10 = 3 → menaikkan tingkat_risiko (mengikuti juknis)
+ *   NILAI_KRISIS_E10   = 2 → memunculkan panel bantuan krisis di UI
+ *
+ * Alasannya: juknis hanya mengeskalasi klasifikasi pada jawaban
+ * "Ya, agak sering", tetapi jawaban "Kadang-kadang" tetap merupakan
+ * pengakuan pikiran mencelakai diri. Klasifikasi mengikuti regulasi
+ * agar laporan ke Dinkes benar; nomor bantuan tidak digantungkan pada
+ * klasifikasi itu.
+ *
  * @param {Array<{id: string, value: number, optionIndex: number}>} answers - 10 jawaban E1–E10
  * @returns {object} Hasil skor EPDS
  */
 export function skorEPDS(answers) {
   const total = answers.reduce((s, a) => s + a.value, 0)
 
-  // Flag Q10 sesuai panduan: hanya jawaban "Ya, agak sering" yang memicu tindak lanjut khusus.
-  const jwbE10  = answers.find((a) => a.id === 'E10')
-  const flagE10 = jwbE10 ? jwbE10.value === 3 : false
+  const jwbE10 = answers.find((a) => a.id === 'E10')
+  const nilaiE10 = jwbE10 ? jwbE10.value : 0
+
+  // Hanya "Ya, agak sering" (nilai 3) yang mengeskalasi tingkat risiko.
+  const flagE10 = nilaiE10 >= NILAI_ESKALASI_E10
+  // Ambang lebih rendah, khusus untuk memunculkan bantuan krisis.
+  const perluKrisis = nilaiE10 >= NILAI_KRISIS_E10
+  const perluSkriningUlang = total >= 9 && total <= 12 && !flagE10
 
   let tingkatRisiko
   if (total >= 13 || flagE10) tingkatRisiko = 'DEPRESI'
@@ -91,10 +139,15 @@ export function skorEPDS(answers) {
 
   return {
     skor_total: total,
-    skor_detail: { flag_e10: flagE10, perlu_skrining_ulang: total >= 9 && total <= 12 && !flagE10 },
+    skor_detail: {
+      flag_e10: flagE10,
+      nilai_e10: nilaiE10,
+      perlu_skrining_ulang: perluSkriningUlang,
+    },
     tingkat_risiko: tingkatRisiko,
     flag_e10: flagE10,
-    perlu_skrining_ulang: total >= 9 && total <= 12 && !flagE10,
+    perlu_skrining_ulang: perluSkriningUlang,
+    perlu_krisis: perluKrisis,
   }
 }
 

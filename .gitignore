@@ -7,3 +7,11 @@ dist/
 test-*.js
 check-schema.*
 test.json
+
+# Tooling lokal agent — bukan bagian dari aplikasi
+.agents/
+skills-lock.json
+
+# Backup data pasien: JANGAN pernah masuk repo (berisi PHI)
+*.csv
+backup*/

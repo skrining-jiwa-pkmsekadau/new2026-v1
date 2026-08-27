@@ -1,5 +1,5 @@
 <template>
-  <div class="relative flex flex-col min-h-screen bg-[#F0F7FF]">
+  <div class="relative flex flex-col min-h-screen bg-[#F0F7FF] page-enter gradient-mesh">
     <!-- BG Dekorasi -->
     <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
       <div
@@ -68,10 +68,17 @@
             >
               Petunjuk Pengisian
             </p>
-            <p
-              class="text-sm text-slate-600 leading-relaxed"
-              v-html="data?.instruksi"
-            ></p>
+            <!-- Petunjuk dirender sebagai potongan teks, bukan v-html.
+                 Satu-satunya markup yang dipakai adalah <strong> untuk
+                 penekanan, jadi tidak perlu menyuntikkan HTML mentah. -->
+            <p class="text-sm text-slate-600 leading-relaxed">
+              <template v-for="(bagian, i) in instruksiSegmen" :key="i">
+                <strong v-if="bagian.tebal" class="font-bold">{{
+                  bagian.teks
+                }}</strong>
+                <template v-else>{{ bagian.teks }}</template>
+              </template>
+            </p>
             <p
               class="text-xs text-slate-400 mt-2 font-medium flex items-center gap-1"
             >
@@ -258,6 +265,12 @@
           </div>
         </div>
 
+        <!-- PANEL KRISIS — muncul segera setelah responden mengakui
+             pikiran mencelakai diri sendiri (EPDS item 10). Ditempatkan
+             di sini, bukan hanya di halaman hasil, agar bantuan hadir
+             pada saat pengakuan. -->
+        <PanelKrisis v-if="tampilkanKrisis" nada="mendesak" />
+
         <!-- NAVIGASI -->
         <div class="flex gap-3 items-stretch">
           <button
@@ -326,6 +339,8 @@ import { useSkriningStore } from "@/stores/skriningStore";
 import { useToast } from "@/composables/useToast";
 import { INSTRUMEN_DATA } from "@/constants/instrumen";
 import ModalKejujuran from "@/components/ModalKejujuran.vue";
+import PanelKrisis from "@/components/PanelKrisis.vue";
+import { NILAI_KRISIS_E10 } from "@/utils/skoring";
 
 const router = useRouter();
 const store = useSkriningStore();
@@ -351,6 +366,22 @@ function onModalConfirm() {
 
 // ── Data Instrumen ──
 const data = computed(() => INSTRUMEN_DATA[store.instrumen]);
+
+/**
+ * Memecah teks petunjuk menjadi potongan biasa dan potongan tebal,
+ * berdasarkan penanda <strong> di INSTRUMEN_DATA.
+ *
+ * Menggantikan v-html: teks tetap dirender melalui interpolasi Vue
+ * yang otomatis meng-escape, sehingga tidak ada jalur injeksi HTML.
+ */
+const instruksiSegmen = computed(() => {
+  const teks = data.value?.instruksi;
+  if (!teks) return [];
+  return teks
+    .split(/<strong>|<\/strong>/)
+    .map((bagian, i) => ({ teks: bagian, tebal: i % 2 === 1 }))
+    .filter((bagian) => bagian.teks !== "");
+});
 const soalList = computed(() => data.value?.soal || []);
 const totalSoal = computed(() => soalList.value.length);
 const soalNow = computed(() => soalList.value[store.currentQuestion]);
@@ -362,6 +393,22 @@ const answered = computed(
 const progressPct = computed(() =>
   Math.round((store.currentQuestion / totalSoal.value) * 100),
 );
+
+/**
+ * Panel krisis tampil saat soal aktif adalah item flag (EPDS item 10)
+ * DAN jawaban yang dipilih mengakui adanya pikiran mencelakai diri
+ * (nilai >= NILAI_KRISIS_E10, yaitu "Kadang-kadang" atau "Ya, agak sering").
+ *
+ * Ambang ini lebih rendah daripada ambang eskalasi risiko (nilai 3).
+ * Juknis hanya mengeskalasi klasifikasi pada "Ya, agak sering", tetapi
+ * setiap pengakuan pikiran mencelakai diri tetap perlu mendapat nomor
+ * bantuan. Klasifikasi mengikuti regulasi; keselamatan tidak menunggu.
+ */
+const tampilkanKrisis = computed(() => {
+  if (!soalNow.value?.flagQuestion) return false;
+  const jwb = store.answers[store.currentQuestion];
+  return jwb !== undefined && jwb.value >= NILAI_KRISIS_E10;
+});
 
 // ── Badge Skala ──
 const skalaBadge = computed(() => {

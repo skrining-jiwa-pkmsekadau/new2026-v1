@@ -1,8 +1,12 @@
 <template>
   <div
-    class="app-root bg-background-warm text-slate-800 font-display min-h-screen"
+    class="app-root bg-background-warm text-slate-800 font-body min-h-screen noise-texture"
   >
-    <router-view />
+    <router-view v-slot="{ Component }">
+      <transition name="page" mode="out-in">
+        <component :is="Component" />
+      </transition>
+    </router-view>
     <ToastContainer />
 
     <!-- Global loading overlay (saat router sedang validasi auth) -->
@@ -54,6 +58,20 @@ onMounted(() => {
 }
 .fade-enter-from,
 .fade-leave-to {
+  opacity: 0;
+}
+
+.page-enter-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.page-leave-active {
+  transition: opacity 0.2s ease;
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.page-leave-to {
   opacity: 0;
 }
 </style>

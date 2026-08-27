@@ -1,7 +1,7 @@
 <template>
   <div
     id="hasil-print-area"
-    class="relative flex flex-col min-h-screen bg-[#F0F7FF]"
+    class="relative flex flex-col min-h-screen bg-[#F0F7FF] page-enter gradient-mesh"
   >
     <!-- BG Deko -->
     <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden no-print">
@@ -428,25 +428,36 @@
               </p>
             </div>
 
-            <!-- Alert Urgent -->
+            <!-- Alert Urgent + nomor bantuan nyata.
+                 Sebelumnya blok ini hanya menyuruh "hubungi tenaga
+                 kesehatan" tanpa satu pun nomor yang bisa dihubungi. -->
             <div
               v-if="hasil.urgent"
               class="p-4 rounded-xl bg-red-50 border-2 border-red-200 flex items-start gap-3"
             >
               <span
+                aria-hidden="true"
                 class="material-symbols-outlined text-red-500 text-[24px] shrink-0 mt-0.5"
                 >emergency</span
               >
               <div>
                 <p class="text-sm font-bold text-red-700 mb-0.5">
-                  Perlu Penanganan Segera!
+                  Perlu Penanganan Segera
                 </p>
                 <p class="text-xs text-red-600 leading-relaxed">
                   Harap segera hubungi tenaga kesehatan di Puskesmas Sekadau
-                  atau kunjungi poli jiwa / IGD terdekat.
+                  atau kunjungi poli jiwa / IGD terdekat. Nomor bantuan ada di
+                  bawah.
                 </p>
               </div>
             </div>
+
+            <!-- PANEL KRISIS — tampil saat item 10 EPDS positif (nada
+                 mendesak) atau saat hasil tergolong urgent (nada anjuran). -->
+            <PanelKrisis
+              v-if="perluKrisis || hasil.urgent"
+              :nada="perluKrisis ? 'mendesak' : 'anjuran'"
+            />
           </div>
         </div>
 
@@ -600,6 +611,8 @@ import { useToast } from "@/composables/useToast";
 import { INSTRUMEN_DATA } from "@/constants/instrumen";
 import { formatTanggalID } from "@/utils/helpers";
 import { db } from "@/services/supabase";
+import PanelKrisis from "@/components/PanelKrisis.vue";
+import { NILAI_KRISIS_E10 } from "@/utils/skoring";
 
 const router = useRouter();
 const store = useSkriningStore();
@@ -651,6 +664,29 @@ const isMMYS = computed(() =>
 );
 const isPHQ4 = computed(() => store.instrumen === "PHQ4");
 const isEPDS = computed(() => store.instrumen === "EPDS");
+
+/**
+ * Perlu bantuan krisis bila responden mengakui pikiran mencelakai diri
+ * (EPDS item 10 bernilai >= NILAI_KRISIS_E10).
+ *
+ * `perlu_krisis` dihitung oleh skorEPDS. Untuk record yang dimuat ulang
+ * dari database, nilai itu tidak ada, jadi dibaca ulang dari
+ * skor_detail.nilai_e10 — atau, sebagai cadangan terakhir, dari
+ * jawaban mentah item E10.
+ */
+const perluKrisis = computed(() => {
+  const h = hasil.value;
+  if (!h) return false;
+  if (h.perlu_krisis === true) return true;
+
+  const nilaiTersimpan = h.skor_detail?.nilai_e10;
+  if (typeof nilaiTersimpan === "number") {
+    return nilaiTersimpan >= NILAI_KRISIS_E10;
+  }
+
+  const jwbE10 = store.answers?.find?.((a) => a?.id === "E10");
+  return typeof jwbE10?.value === "number" && jwbE10.value >= NILAI_KRISIS_E10;
+});
 
 const riskInfo = computed(() => {
   const map = {
