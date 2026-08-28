@@ -119,7 +119,7 @@
         <!-- Premium CTA -->
         <div class="flex flex-col items-center gap-8 anim-fade-up" style="--delay: 1s">
           <router-link
-            to="/identitas"
+            to="/consent"
             class="group relative inline-flex items-center justify-center gap-4 px-16 py-6 bg-slate-900 hover:bg-blue-600 text-white font-black text-xl rounded-2xl shadow-2xl shadow-blue-500/20 transition-all duration-500 transform hover:-translate-y-2"
           >
             <div class="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -324,7 +324,10 @@ onUnmounted(() => {
 /* ── UI Data ── */
 const pills = [
   { icon: "schedule", iconCls: "text-blue-500", iconBg: "bg-blue-500", label: "Cepat (5 Menit)" },
-  { icon: "lock", iconCls: "text-emerald-500", iconBg: "bg-emerald-500", label: "Privasi Terjamin" },
+  // Label ini harus berupa pernyataan yang dapat dibuktikan. Akses data
+  // memang dibatasi pada petugas Puskesmas yang berwenang, dijamin oleh
+  // RLS dan policy is_admin di basis data.
+  { icon: "lock", iconCls: "text-emerald-500", iconBg: "bg-emerald-500", label: "Data Dijaga Puskesmas" },
   { icon: "workspace_premium", iconCls: "text-violet-500", iconBg: "bg-violet-500", label: "Standar Medis" },
 ];
 
@@ -371,7 +374,11 @@ const steps = [
   {
     num: "01",
     title: "Input Data Diri",
-    desc: "Lengkapi identitas singkat. Tenang, data anda aman dalam enkripsi medis kami.",
+    // Deskripsi ini hanya boleh menyatakan hal yang benar-benar berlaku.
+    // Aplikasi tidak menerapkan penyandian di sisi klien, jadi jangan
+    // menjanjikannya. Pembatasan akses oleh RLS dapat diuji, sehingga
+    // itulah yang disebutkan.
+    desc: "Lengkapi identitas singkat. Data Anda hanya dapat dibaca petugas Puskesmas yang berwenang.",
   },
   {
     num: "02",

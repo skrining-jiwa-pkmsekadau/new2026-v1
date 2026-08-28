@@ -15,6 +15,16 @@ export const useSkriningStore = defineStore('skrining', () => {
   const isSaved              = ref(false)
   const savedScreeningKey    = ref(null)
 
+  // ── Persetujuan pelindungan data pribadi (UU 27/2022) ──
+  // Waktu dan versi kebijakan yang disetujui, dikirim ke server bersama
+  // data skrining sebagai bukti persetujuan per pasien.
+  const consentAt            = ref(null)
+  const consentVersion       = ref(null)
+  // Untuk pasien di bawah 18 tahun, persetujuan diberikan orang tua
+  // atau wali. Dikonfirmasi di formulir identitas setelah usia
+  // diketahui dari tanggal lahir.
+  const consentWali          = ref(false)
+
   // ── Actions ──
 
   /** Reset seluruh state skrining ke kondisi awal */
@@ -30,6 +40,9 @@ export const useSkriningStore = defineStore('skrining', () => {
     sudahSetujuJujur.value     = false
     isSaved.value              = false
     savedScreeningKey.value    = null
+    consentAt.value            = null
+    consentVersion.value       = null
+    consentWali.value          = false
   }
 
   /** Simpan data identitas pasien */
@@ -52,6 +65,26 @@ export const useSkriningStore = defineStore('skrining', () => {
   /** Simpan hasil skrining (skor + interpretasi) */
   function setHasilSkrining(hasil) {
     hasilSkrining.value = { ...hasil }
+  }
+
+  /**
+   * Catat persetujuan pasien beserta versi kebijakan yang berlaku.
+   * Versi wajib disimpan: bila isi kebijakan berubah, harus dapat
+   * dibuktikan isi mana yang disetujui pasien ini.
+   *
+   * consentWali direset di sini. Persetujuan wali bersifat per pasien,
+   * bukan per perangkat: tanpa reset, centang dari pasien sebelumnya
+   * ikut terbawa ke pasien berikutnya pada perangkat bersama.
+   */
+  function setConsent(versi) {
+    consentAt.value = new Date().toISOString()
+    consentVersion.value = versi
+    consentWali.value = false
+  }
+
+  /** Tandai bahwa persetujuan diberikan oleh orang tua atau wali. */
+  function setConsentWali(nilai) {
+    consentWali.value = nilai === true
   }
 
   /** Navigasi ke soal selanjutnya */
@@ -82,6 +115,9 @@ export const useSkriningStore = defineStore('skrining', () => {
     sudahSetujuJujur,
     isSaved,
     savedScreeningKey,
+    consentAt,
+    consentVersion,
+    consentWali,
     // actions
     resetSkrining,
     setPatientData,
@@ -91,5 +127,7 @@ export const useSkriningStore = defineStore('skrining', () => {
     nextQuestion,
     prevQuestion,
     goToQuestion,
+    setConsent,
+    setConsentWali,
   }
 })

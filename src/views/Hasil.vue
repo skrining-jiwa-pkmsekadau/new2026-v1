@@ -770,6 +770,12 @@ async function simpanKeSupabase() {
     tempat_skrining: pasien.value.tempat_skrining,
     instrumen: store.instrumen,
     jawaban: [...store.answers],
+    // Bukti persetujuan pelindungan data pribadi (UU 27/2022).
+    // Versi wajib ikut: bila isi kebijakan berubah, harus dapat
+    // dibuktikan isi mana yang disetujui pasien ini.
+    consent_at: store.consentAt,
+    consent_version: store.consentVersion,
+    consent_wali: store.consentWali,
   };
 
   try {
@@ -817,7 +823,10 @@ function cetakPDF() {
 function skriningBaru() {
   if (actionLocked.value) return;
   store.resetSkrining();
-  router.push("/identitas");
+  // resetSkrining menghapus catatan persetujuan, jadi pasien berikutnya
+  // harus melewati gerbang consent lagi. Persetujuan bersifat per orang,
+  // bukan per perangkat.
+  router.push("/consent");
 }
 </script>
 

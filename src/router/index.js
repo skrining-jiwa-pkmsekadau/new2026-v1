@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { db } from '@/services/supabase'
+import { useSkriningStore } from '@/stores/skriningStore'
 const routes = [
   {
     path: '/',
@@ -7,9 +8,23 @@ const routes = [
     component: () => import('@/views/Landing.vue'),
   },
   {
+    // Gerbang persetujuan pelindungan data pribadi (UU 27/2022).
+    // Wajib dilewati sebelum /identitas.
+    path: '/consent',
+    name: 'Consent',
+    component: () => import('@/views/Consent.vue'),
+  },
+  {
+    // Dapat dibuka kapan saja tanpa melewati gerbang persetujuan.
+    path: '/privasi',
+    name: 'Privasi',
+    component: () => import('@/views/Privasi.vue'),
+  },
+  {
     path: '/identitas',
     name: 'Identitas',
     component: () => import('@/views/Identitas.vue'),
+    meta: { perluConsent: true },
   },
   {
     path: '/kuesioner',
@@ -54,6 +69,17 @@ const router = createRouter({
 
 // Navigation Guard
 router.beforeEach(async (to, from, next) => {
+  // Gerbang persetujuan: data pribadi spesifik tidak boleh dikumpulkan
+  // sebelum pasien menyetujui pemberitahuan privasi (UU 27/2022 Pasal 4).
+  // Penjagaan di router memastikan tautan langsung ke #/identitas pun
+  // tidak dapat melewatinya.
+  if (to.meta.perluConsent) {
+    const store = useSkriningStore()
+    if (!store.consentVersion) {
+      return next('/consent')
+    }
+  }
+
   if (to.meta.requiresAuth) {
     const { data: { session } } = await db.auth.getSession()
     if (!session) {
@@ -63,7 +89,7 @@ router.beforeEach(async (to, from, next) => {
     // Cek role admin via RPC is_admin
     const { data: isAdmin, error } = await db.rpc('is_admin')
     if (error || !isAdmin) {
-      // User login tapi bukan admin — redirect ke landing
+      // User login tapi bukan admin — redirect ke login
       await db.auth.signOut()
       return next('/login')
     }

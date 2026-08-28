@@ -721,6 +721,56 @@
             </div>
           </template>
 
+          <!-- ── PERSETUJUAN ORANG TUA / WALI (usia < 18) ──
+               UU 27/2022: persetujuan bagi anak diberikan oleh orang tua
+               atau wali. Ditempatkan di sini, bukan di gerbang consent,
+               karena usia baru diketahui setelah tanggal lahir diisi.
+               Kuesioner MMYS usia 7-9 tahun bahkan diisi orang tua atau
+               pengasuh (juknis KJ.02.02/B.III/1107/2025 hal. 4). -->
+          <template v-if="perluPersetujuanWali">
+            <div class="px-6 py-4 bg-amber-50 border-t border-b border-amber-200">
+              <h2
+                class="text-xs font-bold text-amber-700 uppercase tracking-widest flex items-center gap-2"
+              >
+                <span
+                  aria-hidden="true"
+                  class="material-symbols-outlined text-amber-500 text-[16px]"
+                  >family_restroom</span
+                >
+                Persetujuan Orang Tua / Wali
+              </h2>
+            </div>
+            <div class="p-6">
+              <p class="text-sm text-slate-700 leading-relaxed mb-3">
+                Usia pasien <strong>{{ usia }} tahun</strong>, di bawah 18 tahun.
+                Persetujuan penggunaan data harus diberikan oleh orang tua atau
+                wali, bukan oleh anak.
+              </p>
+              <div
+                class="flex items-start gap-3 p-3.5 rounded-xl bg-white border-2 border-amber-200"
+              >
+                <input
+                  id="setuju-wali"
+                  :checked="store.consentWali"
+                  type="checkbox"
+                  class="mt-0.5 w-5 h-5 shrink-0 rounded border-2 border-slate-300 text-amber-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600"
+                  @change="store.setConsentWali($event.target.checked)"
+                />
+                <label
+                  for="setuju-wali"
+                  class="text-sm text-slate-700 leading-relaxed cursor-pointer"
+                >
+                  Saya adalah <strong>orang tua atau wali</strong> dari pasien,
+                  dan menyetujui pengumpulan serta penggunaan data anak untuk
+                  keperluan skrining kesehatan jiwa dan tindak lanjutnya.
+                </label>
+              </div>
+              <p class="text-[11px] text-amber-700 mt-2 ml-1 leading-relaxed">
+                Skrining tidak dapat dilanjutkan tanpa persetujuan ini.
+              </p>
+            </div>
+          </template>
+
           <!-- ── FOOTER FORM ── -->
           <div class="p-6 bg-slate-50 border-t border-slate-100">
             <button
@@ -766,6 +816,7 @@ import { useSkriningStore } from "@/stores/skriningStore";
 import { useToast } from "@/composables/useToast";
 import { DATA_WILAYAH } from "@/constants/wilayah";
 import { INSTRUMEN_INFO } from "@/constants/instrumen";
+import { USIA_PERLU_WALI } from "@/constants/kebijakanPrivasi";
 import {
   hitungUsia,
   nentukanInstrumen,
@@ -893,6 +944,15 @@ const kecamatanList = computed(() => Object.keys(DATA_WILAYAH));
 const desaList = computed(() => DATA_WILAYAH[form.value.kecamatan] || []);
 const showHamilSection = computed(
   () => form.value.gender === "P" && usia.value >= 13,
+);
+
+/**
+ * Pasien di bawah 18 tahun memerlukan persetujuan orang tua atau wali
+ * (UU 27/2022). Usia baru dapat dihitung setelah tanggal lahir diisi,
+ * karena itu konfirmasinya di sini dan bukan di gerbang consent.
+ */
+const perluPersetujuanWali = computed(
+  () => usia.value > 0 && usia.value < USIA_PERLU_WALI,
 );
 
 const instrumenPreview = computed(() => {
@@ -1167,6 +1227,16 @@ function submitIdentitas() {
   if (showHamilSection.value) {
     if (!f.hamil) return showToast("Pilih status kehamilan / nifas.", "error");
     hamilNifas = f.hamil === "ya";
+  }
+
+  // Persetujuan orang tua/wali wajib untuk pasien di bawah 18 tahun.
+  // Diperiksa di sini, bukan hanya dengan menonaktifkan tombol, agar
+  // tidak dapat dilewati dari devtools.
+  if (perluPersetujuanWali.value && !store.consentWali) {
+    return showToast(
+      "Centang persetujuan orang tua / wali terlebih dahulu.",
+      "warning",
+    );
   }
 
   if (store.nikDiblokir) {
