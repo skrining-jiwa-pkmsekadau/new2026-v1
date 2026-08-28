@@ -20,7 +20,7 @@ kewajiban menjalankan semuanya sekaligus.
 | `03_rls.sql` | Cabut hak `anon` di tabel; aktifkan RLS. | sudah dijalankan |
 | `04_perbaiki_gate_admin.sql` | Perbaiki `is_admin()` yang mengembalikan `NULL`; cabut EXECUTE dari `anon`. | sudah dijalankan |
 | `05_tabel_admin.sql` | Ganti UUID hardcode dengan tabel `admin_users`. | **belum** |
-| `06_migrasi_epds.sql` | Hitung ulang data EPDS historis sesuai juknis. | **belum** |
+| `06_migrasi_epds.sql` | Hitung ulang data EPDS historis sesuai juknis. | **tidak perlu** — dry-run menunjukkan 0 baris berubah |
 
 Berkas lama, sudah tidak dipakai langsung:
 
@@ -83,6 +83,34 @@ hak. Setiap fungsi `SECURITY DEFINER` di sini wajib memuat
 `admin_users`. **Jangan** membuat policy RLS pada `admin_users` yang
 memakai `is_admin()` — itu menimbulkan rekursi tak berujung dan
 mematikan seluruh dashboard.
+
+**`CREATE VIEW` menembus RLS.** View di PostgreSQL berjalan dengan hak
+**pemiliknya**, bukan pemanggil. Sebuah view diagnostik yang membaca
+`screenings` karenanya melewati seluruh policy RLS — dan karena Supabase
+juga memberi `SELECT` kepada `anon` secara baku, view itu pernah
+membocorkan nama serta NIK pasien nyata ke publik. Selalu buat view
+dengan `WITH (security_invoker = on)` **dan** `REVOKE` dari `anon`.
+
+## Wajib dilakukan setelah membuat objek baru di schema `public`
+
+Berlaku untuk **tabel, view, maupun fungsi** — tanpa kecuali.
+
+1. `REVOKE ALL ... FROM PUBLIC, anon, authenticated;` lalu berikan
+   ulang hanya yang benar-benar dibutuhkan.
+2. View: tambahkan `WITH (security_invoker = on)`.
+3. Fungsi `SECURITY DEFINER`: tambahkan
+   `SET search_path TO 'public', 'pg_temp'`.
+4. **Uji dari luar dengan `curl`.** Bukan dari SQL Editor.
+
+```bash
+# Ganti <OBJEK>. Harus 401 dengan kode 42501, bukan 200.
+curl -s "https://<PROJECT_REF>.supabase.co/rest/v1/<OBJEK>?select=*&limit=1" \
+  -H "apikey: <ANON_KEY>" -H "Authorization: Bearer <ANON_KEY>"
+```
+
+Langkah 4 tidak boleh dilewati. Kebocoran view di atas terjadi meskipun
+pelajaran "REVOKE FROM PUBLIC tidak cukup" sudah tertulis di berkas ini
+— aturan yang tidak diuji tidak melindungi apa pun.
 
 ## Arsitektur akses yang berlaku
 

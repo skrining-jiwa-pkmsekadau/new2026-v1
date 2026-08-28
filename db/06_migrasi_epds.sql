@@ -52,7 +52,16 @@
 -- ================================================================
 
 -- Perhitungan ulang untuk setiap baris EPDS.
-CREATE OR REPLACE VIEW public.v_epds_hitung_ulang AS
+--
+-- security_invoker = on WAJIB ada. Tanpa itu, view berjalan dengan hak
+-- PEMILIKNYA, sehingga MENEMBUS RLS tabel screenings — dan karena
+-- Supabase memberi SELECT kepada peran `anon` secara baku untuk objek
+-- baru di schema public, view ini pernah membocorkan nama dan NIK
+-- pasien nyata kepada siapa pun yang memegang anon key.
+--
+-- Lihat blok REVOKE tepat di bawah definisi view; keduanya diperlukan.
+CREATE OR REPLACE VIEW public.v_epds_hitung_ulang
+WITH (security_invoker = on) AS
 WITH dasar AS (
   SELECT
     s.id,
@@ -98,6 +107,24 @@ COMMENT ON VIEW public.v_epds_hitung_ulang IS
   'Perhitungan ulang klasifikasi EPDS dari kolom jawaban (JSONB) '
   'menurut Juknis KJ.02.05 hal. 11. Dipakai untuk meninjau dan '
   'memverifikasi migrasi 06_migrasi_epds.sql.';
+
+-- ── KUNCI VIEW — jangan pernah dilewatkan ────────────────────────
+-- View ini membaca data pasien. Supabase memberi SELECT kepada anon
+-- secara baku untuk objek baru di schema public, jadi hak itu harus
+-- dicabut secara eksplisit. REVOKE FROM PUBLIC saja TIDAK cukup:
+-- pemberian ke `anon` bersifat langsung, bukan lewat PUBLIC.
+REVOKE ALL ON public.v_epds_hitung_ulang FROM PUBLIC;
+REVOKE ALL ON public.v_epds_hitung_ulang FROM anon;
+REVOKE ALL ON public.v_epds_hitung_ulang FROM authenticated;
+
+-- Bukti bahwa kuncinya bekerja HANYA dapat diperoleh dari luar.
+-- SQL Editor berjalan sebagai pemilik sehingga selalu lolos.
+--
+--   curl -s -o /dev/null -w "%{http_code}\n" \
+--     "https://<PROJECT_REF>.supabase.co/rest/v1/v_epds_hitung_ulang?select=nik&limit=1" \
+--     -H "apikey: <ANON_KEY>" -H "Authorization: Bearer <ANON_KEY>"
+--
+--   Harus 401 dengan kode 42501. Bila 200, view masih bocor.
 
 
 -- (1a) RINGKASAN: berapa baris berubah, dan ke arah mana.
