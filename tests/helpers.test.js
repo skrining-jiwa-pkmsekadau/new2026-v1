@@ -13,7 +13,14 @@
  * di sini agar tidak berubah tanpa sengaja.
  */
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { hitungUsia, formatTanggalID, hariIni, nentukanInstrumen, escHtml } from '@/utils/helpers'
+import {
+  hitungUsia,
+  formatTanggalID,
+  hariIni,
+  keTanggalLokal,
+  nentukanInstrumen,
+  escHtml,
+} from '@/utils/helpers'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -147,7 +154,7 @@ describe('formatTanggalID', () => {
   })
 })
 
-describe('hariIni', () => {
+describe('hariIni dan keTanggalLokal', () => {
   it('mengembalikan format YYYY-MM-DD', () => {
     expect(hariIni()).toMatch(/^\d{4}-\d{2}-\d{2}$/)
   })
@@ -158,24 +165,41 @@ describe('hariIni', () => {
   })
 
   /**
-   * BUG TIMEZONE — dikunci pada perilaku saat ini.
+   * Perbaikan bug zona waktu.
    *
-   * hariIni() memakai toISOString() yang selalu UTC. Sekadau ada di
-   * UTC+7 (WIB), jadi setiap skrining antara 00:00-06:59 WIB tercatat
-   * sebagai HARI SEBELUMNYA. Tanggal ini dipakai untuk tanggal_skrining,
-   * gate jeda 90 hari, dan seluruh laporan periode.
+   * hariIni() semula memakai toISOString() yang selalu mengonversi ke
+   * UTC. Sekadau di UTC+7 (WIB), sehingga skrining antara 00:00 dan
+   * 06:59 WIB tercatat sebagai HARI SEBELUMNYA. Tanggal ini dipakai
+   * untuk tanggal_skrining, gate jeda 90 hari, dan seluruh laporan
+   * periode — salah satu hari menggeser semuanya.
    *
-   * Test ini SENGAJA menegaskan perilaku salah agar perbaikannya nanti
-   * terlihat sebagai perubahan yang disengaja, bukan kebetulan.
+   * Keempat test di bawah menjaga agar tidak kembali ke UTC.
    */
-  it('[BUG] pukul 06:00 WIB masih tercatat sebagai tanggal kemarin (UTC)', () => {
-    bekukanWaktu('2026-08-26T06:00:00+07:00') // = 2026-08-25T23:00Z
-    expect(hariIni()).toBe('2026-08-25')
+  it('pukul 00:30 WIB tetap tanggal hari itu, bukan kemarin', () => {
+    bekukanWaktu('2026-08-26T00:30:00+07:00') // = 2026-08-25T17:30Z
+    expect(hariIni()).toBe('2026-08-26')
   })
 
-  it('[BUG] pukul 07:00 WIB baru berganti ke tanggal yang benar', () => {
-    bekukanWaktu('2026-08-26T07:00:00+07:00') // = 2026-08-26T00:00Z
+  it('pukul 06:00 WIB tetap tanggal hari itu', () => {
+    bekukanWaktu('2026-08-26T06:00:00+07:00') // = 2026-08-25T23:00Z
     expect(hariIni()).toBe('2026-08-26')
+  })
+
+  it('pukul 23:59 WIB masih tanggal hari itu, belum bergeser ke besok', () => {
+    bekukanWaktu('2026-08-26T23:59:00+07:00') // = 2026-08-26T16:59Z
+    expect(hariIni()).toBe('2026-08-26')
+  })
+
+  it('pergantian bulan tidak bergeser pada dini hari WIB', () => {
+    // Kasus yang merusak laporan bulanan: 1 September dini hari.
+    bekukanWaktu('2026-09-01T01:00:00+07:00') // = 2026-08-31T18:00Z
+    expect(hariIni()).toBe('2026-09-01')
+  })
+
+  it('keTanggalLokal memberi nol di depan untuk bulan dan tanggal', () => {
+    expect(keTanggalLokal(new Date(2026, 0, 5))).toBe('2026-01-05')
+    expect(keTanggalLokal(new Date(2026, 8, 9))).toBe('2026-09-09')
+    expect(keTanggalLokal(new Date(2026, 11, 31))).toBe('2026-12-31')
   })
 })
 

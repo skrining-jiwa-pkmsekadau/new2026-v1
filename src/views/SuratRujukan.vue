@@ -382,13 +382,16 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useSkriningStore } from "@/stores/skriningStore";
 import { INSTRUMEN_DATA } from "@/constants/instrumen";
+import { keTanggalLokal } from "@/utils/helpers";
 
 const router = useRouter();
 const store = useSkriningStore();
 
 const formSurat = ref({
   nomorSurat: "",
-  tanggalSurat: new Date().toISOString().split("T")[0],
+  // Waktu lokal, bukan toISOString() yang selalu UTC. Surat yang dibuat
+  // dini hari WIB sebelumnya bertanggal hari sebelumnya.
+  tanggalSurat: keTanggalLokal(new Date()),
   tujuan: "",
   kotaTujuan: "",
   keluhan: "",

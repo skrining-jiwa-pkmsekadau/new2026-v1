@@ -137,6 +137,44 @@ export const useDashboardStore = defineStore('dashboard', () => {
       return cocokCari && cocokInstr && cocokRisiko && cocokDari && cocokSampai && cocokKec && cocokGender && cocokSekolah && cocokRiwayat
     })
     halamanAktif.value = 1
+    // Pertahankan urutan yang sedang aktif; tanpa ini indikator kolom
+    // di kepala tabel menunjukkan urutan yang tidak lagi berlaku.
+    urutkanDataFilter()
+  }
+
+  /** Kolom yang nilainya angka dan harus dibandingkan secara numerik. */
+  const KOLOM_ANGKA = new Set(['skor_total', 'usia', 'jumlah_riwayat', 'skrining_ke'])
+
+  /** Kolom tanggal: string 'YYYY-MM-DD' sudah urut secara leksikal. */
+  const KOLOM_TANGGAL = new Set(['tanggal_skrining', 'tanggal_lahir'])
+
+  /** true bila nilai kolom tidak dapat dipakai untuk mengurutkan. */
+  function nilaiKosong(baris, kolom) {
+    const v = baris[kolom]
+    if (v === null || v === undefined || v === '') return true
+    if (KOLOM_ANGKA.has(kolom)) return Number.isNaN(Number(v))
+    return false
+  }
+
+  /**
+   * Bandingkan dua baris pada satu kolom, TANPA memperhitungkan arah.
+   *
+   * Sebelumnya semua kolom dibandingkan sebagai teks, sehingga
+   * skor_total terurut salah: '10' dianggap lebih kecil daripada '9'.
+   * Untuk kolom skor dan usia, itu berarti pasien dengan skor tertinggi
+   * tidak muncul di urutan teratas.
+   */
+  function bandingkan(a, b, kolom) {
+    if (KOLOM_ANGKA.has(kolom)) {
+      return Number(a[kolom]) - Number(b[kolom])
+    }
+
+    const sa = String(a[kolom] ?? '')
+    const sb = String(b[kolom] ?? '')
+    if (KOLOM_TANGGAL.has(kolom)) {
+      return sa.slice(0, 10).localeCompare(sb.slice(0, 10))
+    }
+    return sa.localeCompare(sb, 'id')
   }
 
   function sortTabel(kolom) {
@@ -146,12 +184,32 @@ export const useDashboardStore = defineStore('dashboard', () => {
       sortKolom.value = kolom
       sortAsc.value   = true
     }
-    dataFilter.value.sort((a, b) => {
-      const va = a[kolom] ?? ''
-      const vb = b[kolom] ?? ''
-      return sortAsc.value
-        ? String(va).localeCompare(String(vb))
-        : String(vb).localeCompare(String(va))
+    urutkanDataFilter()
+  }
+
+  /**
+   * Terapkan urutan aktif pada dataFilter.
+   *
+   * Dipanggil juga dari terapkanFilter(): tanpa itu, setiap penyaringan
+   * mengembalikan urutan ke bawaan sementara indikator kolom di kepala
+   * tabel masih menunjukkan urutan lama.
+   *
+   * Baris bernilai kosong SELALU diletakkan paling bawah, tidak ikut
+   * terbalik saat arah berubah. Karena itu pemeriksaan kosong dilakukan
+   * di sini, di luar perkalian dengan `arah` — agar baris cacat tidak
+   * menyamar sebagai skor tertinggi saat urutan dibalik ke menurun.
+   */
+  function urutkanDataFilter() {
+    if (!sortKolom.value) return
+    const kolom = sortKolom.value
+    const arah = sortAsc.value ? 1 : -1
+    dataFilter.value = [...dataFilter.value].sort((a, b) => {
+      const aKosong = nilaiKosong(a, kolom)
+      const bKosong = nilaiKosong(b, kolom)
+      if (aKosong && bKosong) return 0
+      if (aKosong) return 1
+      if (bKosong) return -1
+      return arah * bandingkan(a, b, kolom)
     })
   }
 

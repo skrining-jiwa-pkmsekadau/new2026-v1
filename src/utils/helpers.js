@@ -28,9 +28,18 @@ export function hitungUsia(tglLahir) {
 }
 
 /**
- * Format tanggal ke format Indonesia (contoh: "27 Januari 2026")
- * @param {string} str - ISO date string
- * @returns {string} Tanggal terformat
+ * Format tanggal ke bahasa Indonesia (contoh: "27 Januari 2026").
+ *
+ * Masukan yang diharapkan adalah tanggal saja ('YYYY-MM-DD'), yang oleh
+ * JavaScript diurai sebagai tengah malam UTC. Karena itu pembacaannya
+ * memakai getUTC* — memakai getter lokal justru akan menggeser tanggal
+ * satu hari ke belakang di zona waktu Indonesia.
+ *
+ * JANGAN mengubahnya menjadi getter lokal tanpa juga menangani masukan
+ * bertimestamp penuh.
+ *
+ * @param {string} str - Tanggal ISO, umumnya 'YYYY-MM-DD'
+ * @returns {string} Tanggal terformat, atau '-' bila kosong
  */
 export function formatTanggalID(str) {
   if (!str) return '-'
@@ -41,15 +50,39 @@ export function formatTanggalID(str) {
   ]
 
   const d = new Date(str)
+  if (isNaN(d.getTime())) return '-'
   return `${d.getUTCDate()} ${bulan[d.getUTCMonth()]} ${d.getUTCFullYear()}`
 }
 
 /**
- * Mendapatkan tanggal hari ini dalam format YYYY-MM-DD
+ * Mengubah objek Date menjadi string 'YYYY-MM-DD' menurut waktu LOKAL.
+ *
+ * JANGAN memakai toISOString() untuk ini: fungsi itu selalu mengonversi
+ * ke UTC. Sekadau berada di UTC+7 (WIB), sehingga setiap skrining antara
+ * 00:00 dan 06:59 WIB akan tercatat sebagai HARI SEBELUMNYA.
+ *
+ * Tanggal ini dipakai sebagai tanggal_skrining, dasar gate jeda 90 hari,
+ * dan penyaring seluruh laporan periode — salah satu hari menggeser
+ * semuanya.
+ *
+ * @param {Date} d
+ * @returns {string} 'YYYY-MM-DD'
+ */
+export function keTanggalLokal(d) {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const t = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${t}`
+}
+
+/**
+ * Tanggal hari ini dalam format 'YYYY-MM-DD' menurut waktu lokal
+ * perangkat.
+ *
  * @returns {string}
  */
 export function hariIni() {
-  return new Date().toISOString().split('T')[0]
+  return keTanggalLokal(new Date())
 }
 
 /**
