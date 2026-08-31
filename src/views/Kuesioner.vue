@@ -120,148 +120,181 @@
             </span>
           </div>
 
-          <!-- Teks Soal + Opsi -->
+          <!-- Teks Soal + Opsi
+
+               Struktur memakai fieldset + legend + <input type="radio">
+               yang sebenarnya, bukan tombol.
+
+               Sebelumnya seluruh opsi berupa <button> dan status pilihan
+               hanya disampaikan lewat kelas CSS. Akibatnya pembaca layar
+               mengumumkan empat tombol yang tidak berkaitan, tanpa
+               memberi tahu bahwa ini pilihan tunggal, berapa jumlah
+               pilihannya, atau mana yang sedang dipilih. Navigasi panah
+               antar-opsi juga tidak berfungsi.
+
+               Radio asli memberi semuanya secara bawaan: pengelompokan,
+               "1 dari 4", status terpilih, dan navigasi panah. Inputnya
+               disembunyikan secara visual namun tetap dapat difokus
+               (sr-only), sedangkan tampilan kartu dipertahankan lewat
+               <label>. -->
           <div class="p-5">
-            <p
-              class="text-slate-800 font-semibold text-[15px] leading-relaxed mb-1"
-            >
-              {{ soalNow?.teks }}
-            </p>
-
-            <!-- Peringatan khusus EPDS soal 10 -->
-            <div
-              v-if="soalNow?.flagQuestion"
-              class="mt-4 p-3 rounded-lg bg-rose-50 border border-rose-200 flex items-start gap-2.5"
-            >
-              <span
-                class="material-symbols-outlined text-rose-400 text-[18px] shrink-0 mt-0.5"
-                >info</span
+            <fieldset class="border-0 p-0 m-0">
+              <legend
+                class="text-slate-800 font-semibold text-[15px] leading-relaxed mb-1"
               >
-              <p class="text-xs text-rose-700 leading-relaxed font-medium">
-                Pertanyaan ini penting untuk diisi dengan jujur. Jawaban Anda
-                akan ditangani secara profesional dan sepenuhnya rahasia.
-              </p>
-            </div>
+                {{ soalNow?.teks }}
+              </legend>
 
-            <!-- OPSI YA/TIDAK (2 kolom) -->
-            <div
-              v-if="data?.tipe_jawaban === 'YA_TIDAK'"
-              class="mt-5 grid grid-cols-2 gap-3"
-            >
-              <button
-                v-for="(o, i) in opsiList"
-                :key="i"
-                type="button"
-                @click="pilihJawaban(o.value, i)"
-                :class="[
-                  'option-card rounded-xl p-5 flex flex-col items-center gap-3',
-                  isSelected(i) ? 'selected' : '',
-                ]"
+              <!-- Peringatan khusus EPDS soal 10 -->
+              <div
+                v-if="soalNow?.flagQuestion"
+                class="mt-4 p-3 rounded-lg bg-rose-50 border border-rose-200 flex items-start gap-2.5"
               >
-                <div
+                <span
+                  aria-hidden="true"
+                  class="material-symbols-outlined text-rose-400 text-[18px] shrink-0 mt-0.5"
+                  >info</span
+                >
+                <p class="text-xs text-rose-700 leading-relaxed font-medium">
+                  Pertanyaan ini penting untuk diisi dengan jujur. Jawaban Anda
+                  akan ditangani secara profesional dan sepenuhnya rahasia.
+                </p>
+              </div>
+
+              <!-- OPSI YA/TIDAK (2 kolom) -->
+              <div
+                v-if="data?.tipe_jawaban === 'YA_TIDAK'"
+                class="mt-5 grid grid-cols-2 gap-3"
+              >
+                <label
+                  v-for="(o, i) in opsiList"
+                  :key="i"
                   :class="[
-                    'icon-box w-12 h-12 rounded-full flex items-center justify-center transition-all',
-                    isSelected(i)
-                      ? o.label === 'Ya'
+                    'option-card rounded-xl p-5 flex flex-col items-center gap-3 cursor-pointer has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-blue-600',
+                    isSelected(i) ? 'selected' : '',
+                  ]"
+                >
+                  <input
+                    type="radio"
+                    class="sr-only"
+                    :name="namaGrup"
+                    :value="i"
+                    :checked="isSelected(i)"
+                    @change="pilihJawaban(o.value, i)"
+                  />
+                  <div
+                    aria-hidden="true"
+                    :class="[
+                      'icon-box w-12 h-12 rounded-full flex items-center justify-center transition-all',
+                      isSelected(i) && o.label === 'Ya'
                         ? 'bg-sky-100'
-                        : 'bg-slate-100'
-                      : 'bg-slate-100',
-                  ]"
-                >
-                  <span
-                    :class="[
-                      'material-symbols-outlined text-[26px]',
-                      isSelected(i)
-                        ? o.label === 'Ya'
-                          ? 'text-sky-500'
-                          : 'text-slate-500'
-                        : 'text-slate-400',
+                        : 'bg-slate-100',
                     ]"
                   >
-                    {{ o.label === "Ya" ? "check_circle" : "cancel" }}
-                  </span>
-                </div>
-                <span
-                  :class="[
-                    'option-text text-sm font-bold',
-                    isSelected(i) ? 'text-sky-700' : 'text-slate-600',
-                  ]"
-                  >{{ o.label }}</span
-                >
-                <div
-                  :class="[
-                    'check-circle w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all',
-                    isSelected(i)
-                      ? 'border-sky-400 bg-sky-400'
-                      : 'border-slate-300',
-                  ]"
-                >
-                  <div
+                    <span
+                      :class="[
+                        'material-symbols-outlined text-[26px]',
+                        isSelected(i)
+                          ? o.label === 'Ya'
+                            ? 'text-sky-500'
+                            : 'text-slate-500'
+                          : 'text-slate-400',
+                      ]"
+                    >
+                      {{ o.label === "Ya" ? "check_circle" : "cancel" }}
+                    </span>
+                  </div>
+                  <span
                     :class="[
-                      'check-dot w-2 h-2 rounded-full bg-white',
-                      isSelected(i)
-                        ? 'opacity-100 scale-100'
-                        : 'opacity-0 scale-50',
+                      'option-text text-sm font-bold',
+                      isSelected(i) ? 'text-sky-700' : 'text-slate-600',
                     ]"
-                  ></div>
-                </div>
-              </button>
-            </div>
+                    >{{ o.label }}</span
+                  >
+                  <div
+                    aria-hidden="true"
+                    :class="[
+                      'check-circle w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all',
+                      isSelected(i)
+                        ? 'border-sky-400 bg-sky-400'
+                        : 'border-slate-300',
+                    ]"
+                  >
+                    <div
+                      :class="[
+                        'check-dot w-2 h-2 rounded-full bg-white',
+                        isSelected(i)
+                          ? 'opacity-100 scale-100'
+                          : 'opacity-0 scale-50',
+                      ]"
+                    ></div>
+                  </div>
+                </label>
+              </div>
 
-            <!-- OPSI VERTIKAL (4 pilihan — PHQ-4 & EPDS) -->
-            <div v-else class="mt-5 flex flex-col gap-2.5">
-              <button
-                v-for="(o, i) in opsiList"
-                :key="i"
-                type="button"
-                @click="pilihJawaban(o.value, i)"
-                :class="[
-                  'option-card rounded-xl px-4 py-3.5 flex items-center gap-4 text-left',
-                  isSelected(i) ? 'selected' : '',
-                ]"
-              >
-                <div
+              <!-- OPSI VERTIKAL (4 pilihan — PHQ-4 & EPDS) -->
+              <div v-else class="mt-5 flex flex-col gap-2.5">
+                <label
+                  v-for="(o, i) in opsiList"
+                  :key="i"
                   :class="[
-                    'icon-box w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all',
-                    isSelected(i) ? 'bg-sky-100' : 'bg-slate-100',
+                    'option-card rounded-xl px-4 py-3.5 flex items-center gap-4 text-left cursor-pointer has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-blue-600',
+                    isSelected(i) ? 'selected' : '',
                   ]"
                 >
+                  <input
+                    type="radio"
+                    class="sr-only"
+                    :name="namaGrup"
+                    :value="i"
+                    :checked="isSelected(i)"
+                    @change="pilihJawaban(o.value, i)"
+                  />
+                  <div
+                    aria-hidden="true"
+                    :class="[
+                      'icon-box w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all',
+                      isSelected(i) ? 'bg-sky-100' : 'bg-slate-100',
+                    ]"
+                  >
+                    <span
+                      :class="[
+                        'text-xs font-bold',
+                        isSelected(i) ? 'text-sky-600' : 'text-slate-400',
+                      ]"
+                      >{{ ["A", "B", "C", "D"][i] }}</span
+                    >
+                  </div>
                   <span
                     :class="[
-                      'text-xs font-bold',
-                      isSelected(i) ? 'text-sky-600' : 'text-slate-400',
-                    ]"
-                    >{{ ["A", "B", "C", "D"][i] }}</span
-                  >
-                </div>
-                <span
-                  :class="[
-                    'option-text text-sm font-medium flex-1 leading-snug',
-                    isSelected(i)
-                      ? 'text-sky-800 font-semibold'
-                      : 'text-slate-700',
-                  ]"
-                  >{{ o.label }}</span
-                >
-                <div
-                  :class="[
-                    'check-circle w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all',
-                    isSelected(i)
-                      ? 'border-sky-400 bg-sky-400'
-                      : 'border-slate-300',
-                  ]"
-                >
-                  <div
-                    :class="[
-                      'check-dot w-2 h-2 rounded-full bg-white',
+                      'option-text text-sm font-medium flex-1 leading-snug',
                       isSelected(i)
-                        ? 'opacity-100 scale-100'
-                        : 'opacity-0 scale-50',
+                        ? 'text-sky-800 font-semibold'
+                        : 'text-slate-700',
                     ]"
-                  ></div>
-                </div>
-              </button>
-            </div>
+                    >{{ o.label }}</span
+                  >
+                  <div
+                    aria-hidden="true"
+                    :class="[
+                      'check-circle w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all',
+                      isSelected(i)
+                        ? 'border-sky-400 bg-sky-400'
+                        : 'border-slate-300',
+                    ]"
+                  >
+                    <div
+                      :class="[
+                        'check-dot w-2 h-2 rounded-full bg-white',
+                        isSelected(i)
+                          ? 'opacity-100 scale-100'
+                          : 'opacity-0 scale-50',
+                      ]"
+                    ></div>
+                  </div>
+                </label>
+              </div>
+            </fieldset>
           </div>
         </div>
 
@@ -390,8 +423,22 @@ const isLast = computed(() => store.currentQuestion === totalSoal.value - 1);
 const answered = computed(
   () => store.answers[store.currentQuestion] !== undefined,
 );
+// Guard `|| 1`: pada satu render sebelum onMounted mengalihkan halaman,
+// totalSoal masih 0 dan pembagian menghasilkan NaN yang bocor ke
+// atribut style sebagai "width: NaN%".
 const progressPct = computed(() =>
-  Math.round((store.currentQuestion / totalSoal.value) * 100),
+  Math.round((store.currentQuestion / (totalSoal.value || 1)) * 100),
+);
+
+/**
+ * Nama grup radio, unik per soal.
+ *
+ * Wajib berbeda antar-soal: bila sama, browser menganggap seluruh soal
+ * sebagai satu grup pilihan tunggal, sehingga memilih jawaban pada soal
+ * berikutnya akan membatalkan jawaban soal sebelumnya.
+ */
+const namaGrup = computed(
+  () => `soal-${store.instrumen}-${store.currentQuestion}`,
 );
 
 /**

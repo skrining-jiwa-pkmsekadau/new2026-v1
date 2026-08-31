@@ -103,10 +103,11 @@
           <div class="p-6 space-y-5">
             <!-- Nama Lengkap -->
             <div>
-              <label class="block text-sm font-semibold text-slate-700 mb-1.5"
+              <label for="f-nama" class="block text-sm font-semibold text-slate-700 mb-1.5"
                 >Nama Lengkap <span class="text-red-400">*</span></label
               >
               <input
+                  id="f-nama"
                 v-model="form.nama"
                 type="text"
                 placeholder="Masukkan nama lengkap sesuai KTP"
@@ -116,7 +117,7 @@
 
             <!-- NIK -->
             <div>
-              <label class="block text-sm font-semibold text-slate-700 mb-1.5"
+              <label for="f-nik" class="block text-sm font-semibold text-slate-700 mb-1.5"
                 >NIK <span class="text-red-400">*</span></label
               >
               <div class="relative">
@@ -129,6 +130,7 @@
                   >
                 </span>
                 <input
+                  id="f-nik"
                   v-model="form.nik"
                   type="text"
                   inputmode="numeric"
@@ -262,10 +264,11 @@
             <!-- Tanggal Lahir + Usia -->
             <div class="grid grid-cols-5 gap-3">
               <div class="col-span-3">
-                <label class="block text-sm font-semibold text-slate-700 mb-1.5"
+                <label for="f-tgl-lahir" class="block text-sm font-semibold text-slate-700 mb-1.5"
                   >Tanggal Lahir <span class="text-red-400">*</span></label
                 >
                 <input
+                  id="f-tgl-lahir"
                   v-model="form.tglLahir"
                   type="date"
                   :max="hariIni()"
@@ -300,12 +303,25 @@
 
             <!-- Jenis Kelamin -->
             <div>
-              <label class="block text-sm font-semibold text-slate-700 mb-2"
-                >Jenis Kelamin <span class="text-red-400">*</span></label
+              <!-- Kelompok pilihan tunggal berbasis tombol. Ditandai
+                   role="radiogroup" + role="radio" + aria-checked agar
+                   pembaca layar mengumumkannya sebagai satu pilihan,
+                   bukan dua tombol lepas. -->
+              <span
+                id="lbl-gender"
+                class="block text-sm font-semibold text-slate-700 mb-2"
+                >Jenis Kelamin <span class="text-red-400">*</span></span
               >
-              <div class="grid grid-cols-2 gap-3">
+              <div
+                class="grid grid-cols-2 gap-3"
+                role="radiogroup"
+                aria-labelledby="lbl-gender"
+              >
                 <button
                   type="button"
+                  role="radio"
+                  :aria-checked="form.gender === 'L'"
+                  aria-label="Laki-laki"
                   @click="form.gender = 'L'"
                   :class="[
                     'gender-btn flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all',
@@ -344,6 +360,9 @@
                 </button>
                 <button
                   type="button"
+                  role="radio"
+                  :aria-checked="form.gender === 'P'"
+                  aria-label="Perempuan"
                   @click="form.gender = 'P'"
                   :class="[
                     'gender-btn flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all',
@@ -385,7 +404,7 @@
 
             <!-- Nomor HP -->
             <div>
-              <label class="block text-sm font-semibold text-slate-700 mb-1.5"
+              <label for="f-hp" class="block text-sm font-semibold text-slate-700 mb-1.5"
                 >Nomor HP <span class="text-red-400">*</span></label
               >
               <div class="relative">
@@ -398,6 +417,7 @@
                   >
                 </span>
                 <input
+                  id="f-hp"
                   v-model="form.hp"
                   type="tel"
                   inputmode="numeric"
@@ -426,11 +446,12 @@
           <div class="p-6 space-y-5">
             <!-- Kecamatan -->
             <div>
-              <label class="block text-sm font-semibold text-slate-700 mb-1.5"
+              <label for="f-kecamatan" class="block text-sm font-semibold text-slate-700 mb-1.5"
                 >Kecamatan <span class="text-red-400">*</span></label
               >
               <div class="relative">
                 <select
+                  id="f-kecamatan"
                   v-model="form.kecamatan"
                   class="warm-input w-full px-4 py-2.5 rounded-lg text-sm focus:outline-none appearance-none pr-10"
                 >
@@ -452,11 +473,12 @@
 
             <!-- Desa -->
             <div>
-              <label class="block text-sm font-semibold text-slate-700 mb-1.5"
+              <label for="f-desa" class="block text-sm font-semibold text-slate-700 mb-1.5"
                 >Desa / Kelurahan <span class="text-red-400">*</span></label
               >
               <div class="relative">
                 <select
+                  id="f-desa"
                   v-model="form.desa"
                   class="warm-input w-full px-4 py-2.5 rounded-lg text-sm focus:outline-none appearance-none pr-10"
                 >
@@ -484,10 +506,11 @@
 
             <!-- Alamat -->
             <div>
-              <label class="block text-sm font-semibold text-slate-700 mb-1.5"
+              <label for="f-alamat" class="block text-sm font-semibold text-slate-700 mb-1.5"
                 >Alamat Lengkap <span class="text-red-400">*</span></label
               >
               <textarea
+                  id="f-alamat"
                 v-model="form.alamat"
                 rows="2"
                 placeholder="Jl. Nama Jalan, No. Rumah, RT/RW"
@@ -512,7 +535,7 @@
           <div class="p-6 space-y-5">
             <!-- Pendidikan -->
             <div>
-              <label class="block text-sm font-semibold text-slate-700 mb-1.5"
+              <label for="f-pendidikan" class="block text-sm font-semibold text-slate-700 mb-1.5"
                 >Pendidikan Terakhir <span class="text-red-400">*</span></label
               >
               <div class="relative">
@@ -521,6 +544,7 @@
                   >school</span
                 >
                 <select
+                  id="f-pendidikan"
                   v-model="form.pendidikan"
                   class="w-full pl-9 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-400 focus:outline-none bg-white text-slate-700 text-sm font-medium appearance-none transition-all"
                 >
@@ -538,7 +562,7 @@
 
             <!-- Pekerjaan -->
             <div>
-              <label class="block text-sm font-semibold text-slate-700 mb-1.5"
+              <label for="f-pekerjaan" class="block text-sm font-semibold text-slate-700 mb-1.5"
                 >Pekerjaan <span class="text-red-400">*</span></label
               >
               <div class="relative">
@@ -547,6 +571,7 @@
                   >work</span
                 >
                 <select
+                  id="f-pekerjaan"
                   v-model="form.pekerjaan"
                   class="w-full pl-9 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-400 focus:outline-none bg-white text-slate-700 text-sm font-medium appearance-none transition-all"
                 >
@@ -564,7 +589,7 @@
 
             <!-- Nama Sekolah (Kondisional untuk Pelajar) -->
             <div v-if="form.pekerjaan === 'Pelajar'">
-              <label class="block text-sm font-semibold text-slate-700 mb-1.5"
+              <label for="f-sekolah" class="block text-sm font-semibold text-slate-700 mb-1.5"
                 >Nama Sekolah <span class="text-red-400">*</span></label
               >
               <div class="relative">
@@ -573,6 +598,7 @@
                   >account_balance</span
                 >
                 <select
+                  id="f-sekolah"
                   v-model="form.namaSekolah"
                   class="w-full pl-9 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-400 focus:outline-none bg-white text-slate-700 text-sm font-medium appearance-none transition-all"
                 >
@@ -590,7 +616,7 @@
 
             <!-- Nama Kampus (Kondisional untuk Mahasiswa) -->
             <div v-if="form.pekerjaan === 'Mahasiswa'">
-              <label class="block text-sm font-semibold text-slate-700 mb-1.5"
+              <label for="f-kampus" class="block text-sm font-semibold text-slate-700 mb-1.5"
                 >Nama Kampus <span class="text-red-400">*</span></label
               >
               <div class="relative">
@@ -599,6 +625,7 @@
                   >account_balance</span
                 >
                 <select
+                  id="f-kampus"
                   v-model="form.namaSekolah"
                   class="w-full pl-9 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-400 focus:outline-none bg-white text-slate-700 text-sm font-medium appearance-none transition-all"
                 >
@@ -616,7 +643,7 @@
 
             <!-- Tempat Skrining -->
             <div>
-              <label class="block text-sm font-semibold text-slate-700 mb-1.5"
+              <label for="f-tempat" class="block text-sm font-semibold text-slate-700 mb-1.5"
                 >Tempat Skrining <span class="text-red-400">*</span></label
               >
               <div class="relative">
@@ -625,6 +652,7 @@
                   >location_on</span
                 >
                 <input
+                  id="f-tempat"
                   v-model="form.tempatSkrining"
                   type="text"
                   placeholder="Contoh: Puskesmas Sekadau, SDN 01 Sekadau, Posyandu..."
@@ -652,13 +680,23 @@
               </h2>
             </div>
             <div class="p-6">
-              <p class="text-sm font-semibold text-slate-700 mb-3">
+              <p
+                id="lbl-hamil"
+                class="text-sm font-semibold text-slate-700 mb-3"
+              >
                 Apakah saat ini sedang hamil atau dalam masa nifas?
                 <span class="text-red-400">*</span>
               </p>
-              <div class="grid grid-cols-2 gap-3">
+              <div
+                class="grid grid-cols-2 gap-3"
+                role="radiogroup"
+                aria-labelledby="lbl-hamil"
+              >
                 <button
                   type="button"
+                  role="radio"
+                  :aria-checked="form.hamil === 'ya'"
+                  aria-label="Ya, sedang hamil atau nifas"
                   @click="form.hamil = 'ya'"
                   :class="[
                     'hamil-btn flex items-center gap-3 p-4 rounded-xl border-2 transition-all',
@@ -688,6 +726,9 @@
                 </button>
                 <button
                   type="button"
+                  role="radio"
+                  :aria-checked="form.hamil === 'tidak'"
+                  aria-label="Tidak sedang hamil atau nifas"
                   @click="form.hamil = 'tidak'"
                   :class="[
                     'hamil-btn flex items-center gap-3 p-4 rounded-xl border-2 transition-all',
