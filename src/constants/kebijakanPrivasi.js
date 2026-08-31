@@ -39,18 +39,20 @@ export const PENGENDALI_DATA = {
 }
 
 /**
- * Kontak pengaduan privasi.
+ * Kontak pengaduan privasi — jalur resmi bagi warga untuk menggunakan
+ * haknya atas data pribadinya.
  *
- * TODO: ganti dengan nomor dan email RESMI Puskesmas. Jangan memakai
- * nomor pribadi petugas — kontak ini adalah jalur resmi bagi warga untuk
- * menggunakan haknya atas data pribadinya, dan harus tetap berlaku
- * meskipun petugasnya berganti.
+ * Alamat ini adalah alamat instansi, bukan pribadi, sehingga tetap
+ * berlaku meskipun petugasnya berganti. Pastikan kotak masuknya
+ * benar-benar dibaca secara berkala — alamat pengaduan yang tidak
+ * pernah dibuka sama buruknya dengan tidak menyediakan alamat.
  */
 export const KONTAK_PENGADUAN = {
-  keterangan: 'Sampaikan langsung ke petugas pendaftaran UPTD Puskesmas Sekadau',
+  keterangan:
+    'Kirim surel ke alamat di bawah, atau sampaikan langsung ke petugas pendaftaran UPTD Puskesmas Sekadau',
   telepon: null,
-  email: null,
-  sementara: true,
+  email: 'kejiwaan.pkmsekadau@gmail.com',
+  sementara: false,
 }
 
 /**

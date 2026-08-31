@@ -167,9 +167,7 @@
                         :style="{
                           width:
                             Math.max(
-                              (store.semuaData.filter(
-                                (x) => x.instrumen === 'MMYS_ANAK',
-                              ).length /
+                              (statistikDashboard.mMysAnak /
                                 Math.max(store.semuaData.length, 1)) *
                                 100,
                               4,
@@ -180,9 +178,7 @@
                     <span
                       class="text-xs font-bold text-slate-700 w-8 text-right shrink-0"
                       >{{
-                        store.semuaData.filter(
-                          (x) => x.instrumen === "MMYS_ANAK",
-                        ).length
+                        statistikDashboard.mMysAnak
                       }}</span
                     >
                     <span
@@ -190,9 +186,7 @@
                       >{{
                         store.semuaData.length
                           ? Math.round(
-                              (store.semuaData.filter(
-                                (x) => x.instrumen === "MMYS_ANAK",
-                              ).length /
+                              (statistikDashboard.mMysAnak /
                                 store.semuaData.length) *
                                 100,
                             )
@@ -217,9 +211,7 @@
                         :style="{
                           width:
                             Math.max(
-                              (store.semuaData.filter(
-                                (x) => x.instrumen === 'MMYS_REMAJA',
-                              ).length /
+                              (statistikDashboard.mMysRemaja /
                                 Math.max(store.semuaData.length, 1)) *
                                 100,
                               4,
@@ -230,9 +222,7 @@
                     <span
                       class="text-xs font-bold text-slate-700 w-8 text-right shrink-0"
                       >{{
-                        store.semuaData.filter(
-                          (x) => x.instrumen === "MMYS_REMAJA",
-                        ).length
+                        statistikDashboard.mMysRemaja
                       }}</span
                     >
                     <span
@@ -240,9 +230,7 @@
                       >{{
                         store.semuaData.length
                           ? Math.round(
-                              (store.semuaData.filter(
-                                (x) => x.instrumen === "MMYS_REMAJA",
-                              ).length /
+                              (statistikDashboard.mMysRemaja /
                                 store.semuaData.length) *
                                 100,
                             )
@@ -267,9 +255,7 @@
                         :style="{
                           width:
                             Math.max(
-                              (store.semuaData.filter(
-                                (x) => x.instrumen === 'PHQ4',
-                              ).length /
+                              (statistikDashboard.phq4 /
                                 Math.max(store.semuaData.length, 1)) *
                                 100,
                               4,
@@ -280,8 +266,7 @@
                     <span
                       class="text-xs font-bold text-slate-700 w-8 text-right shrink-0"
                       >{{
-                        store.semuaData.filter((x) => x.instrumen === "PHQ4")
-                          .length
+                        statistikDashboard.phq4
                       }}</span
                     >
                     <span
@@ -289,9 +274,7 @@
                       >{{
                         store.semuaData.length
                           ? Math.round(
-                              (store.semuaData.filter(
-                                (x) => x.instrumen === "PHQ4",
-                              ).length /
+                              (statistikDashboard.phq4 /
                                 store.semuaData.length) *
                                 100,
                             )
@@ -316,9 +299,7 @@
                         :style="{
                           width:
                             Math.max(
-                              (store.semuaData.filter(
-                                (x) => x.instrumen === 'EPDS',
-                              ).length /
+                              (statistikDashboard.epds /
                                 Math.max(store.semuaData.length, 1)) *
                                 100,
                               4,
@@ -329,8 +310,7 @@
                     <span
                       class="text-xs font-bold text-slate-700 w-8 text-right shrink-0"
                       >{{
-                        store.semuaData.filter((x) => x.instrumen === "EPDS")
-                          .length
+                        statistikDashboard.epds
                       }}</span
                     >
                     <span
@@ -338,9 +318,7 @@
                       >{{
                         store.semuaData.length
                           ? Math.round(
-                              (store.semuaData.filter(
-                                (x) => x.instrumen === "EPDS",
-                              ).length /
+                              (statistikDashboard.epds /
                                 store.semuaData.length) *
                                 100,
                             )
@@ -379,9 +357,7 @@
                     :stroke="'#ef4444'"
                     stroke-width="14"
                     :stroke-dasharray="
-                      (store.semuaData.filter(
-                        (x) => x.tingkat_risiko === 'High Risk',
-                      ).length /
+                      (statistikDashboard.risikoTinggi /
                         Math.max(store.semuaData.length, 1)) *
                         314 +
                       ' 314'
@@ -398,18 +374,14 @@
                     :stroke="'#f59e0b'"
                     stroke-width="14"
                     :stroke-dasharray="
-                      (store.semuaData.filter(
-                        (x) => x.tingkat_risiko === 'Moderate Risk',
-                      ).length /
+                      (statistikDashboard.risikoSedang /
                         Math.max(store.semuaData.length, 1)) *
                         314 +
                       ' 314'
                     "
                     :stroke-dashoffset="
                       '-' +
-                      (store.semuaData.filter(
-                        (x) => x.tingkat_risiko === 'High Risk',
-                      ).length /
+                      (statistikDashboard.risikoTinggi /
                         Math.max(store.semuaData.length, 1)) *
                         314
                     "
@@ -424,21 +396,15 @@
                     :stroke="'#10b981'"
                     stroke-width="14"
                     :stroke-dasharray="
-                      (store.semuaData.filter(
-                        (x) => x.tingkat_risiko === 'Low Risk',
-                      ).length /
+                      (statistikDashboard.risikoRendah /
                         Math.max(store.semuaData.length, 1)) *
                         314 +
                       ' 314'
                     "
                     :stroke-dashoffset="
                       '-' +
-                      ((store.semuaData.filter(
-                        (x) => x.tingkat_risiko === 'High Risk',
-                      ).length +
-                        store.semuaData.filter(
-                          (x) => x.tingkat_risiko === 'Moderate Risk',
-                        ).length) /
+                      ((statistikDashboard.risikoTinggi +
+                        statistikDashboard.risikoSedang) /
                         Math.max(store.semuaData.length, 1)) *
                         314
                     "
@@ -472,17 +438,13 @@
                   <span class="text-xs font-bold">High Risk</span>
                   <div class="flex items-center gap-2">
                     <span class="text-sm font-black">{{
-                      store.semuaData.filter(
-                        (x) => x.tingkat_risiko === "High Risk",
-                      ).length
+                      statistikDashboard.risikoTinggi
                     }}</span>
                     <span class="text-[10px] opacity-60"
                       >({{
                         store.semuaData.length
                           ? Math.round(
-                              (store.semuaData.filter(
-                                (x) => x.tingkat_risiko === "High Risk",
-                              ).length /
+                              (statistikDashboard.risikoTinggi /
                                 store.semuaData.length) *
                                 100,
                             )
@@ -497,17 +459,13 @@
                   <span class="text-xs font-bold">Moderate</span>
                   <div class="flex items-center gap-2">
                     <span class="text-sm font-black">{{
-                      store.semuaData.filter(
-                        (x) => x.tingkat_risiko === "Moderate Risk",
-                      ).length
+                      statistikDashboard.risikoSedang
                     }}</span>
                     <span class="text-[10px] opacity-60"
                       >({{
                         store.semuaData.length
                           ? Math.round(
-                              (store.semuaData.filter(
-                                (x) => x.tingkat_risiko === "Moderate Risk",
-                              ).length /
+                              (statistikDashboard.risikoSedang /
                                 store.semuaData.length) *
                                 100,
                             )
@@ -522,17 +480,13 @@
                   <span class="text-xs font-bold">Low Risk</span>
                   <div class="flex items-center gap-2">
                     <span class="text-sm font-black">{{
-                      store.semuaData.filter(
-                        (x) => x.tingkat_risiko === "Low Risk",
-                      ).length
+                      statistikDashboard.risikoRendah
                     }}</span>
                     <span class="text-[10px] opacity-60"
                       >({{
                         store.semuaData.length
                           ? Math.round(
-                              (store.semuaData.filter(
-                                (x) => x.tingkat_risiko === "Low Risk",
-                              ).length /
+                              (statistikDashboard.risikoRendah /
                                 store.semuaData.length) *
                                 100,
                             )
@@ -857,7 +811,7 @@
                     </td>
                     <td class="px-4 py-3 text-center whitespace-nowrap">
                       <button
-                        @click.stop="openDetail(d)"
+                        @click.stop="openDetail(d, $event)"
                         class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 text-[11px] font-bold transition-all border border-blue-100"
                       >
                         <span class="material-symbols-outlined text-[13px]"
@@ -938,784 +892,6 @@
           class="flex flex-col gap-4 max-w-7xl mx-auto w-full"
         >
           <GrafikMudah :data="dataUnik" />
-          <div v-if="false">
-          <!-- Tab Navigation -->
-          <div
-            class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-2 w-full sm:w-auto self-start"
-          >
-            <div class="flex gap-1 w-full sm:w-auto">
-              <button
-                v-for="tab in grafikTabs"
-                :key="tab.key"
-                @click="grafikTab = tab.key"
-                :class="[
-                  'flex-1 sm:flex-none py-2.5 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5',
-                  grafikTab === tab.key
-                    ? 'bg-[#0b3d66] text-white shadow-md'
-                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700',
-                ]"
-              >
-                <span
-                  class="material-symbols-outlined text-[16px] sm:text-[18px]"
-                  >{{ tab.icon }}</span
-                >
-                <span>{{ tab.label }}</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Kelompok Usia Tab -->
-          <div
-            v-show="grafikTab === 'usia'"
-            class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-6"
-          >
-            <h3
-              class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4"
-            >
-              Distribusi Kelompok Usia (Breakdown Risiko & Instrumen)
-            </h3>
-            <div
-              v-for="u in grafikUsia"
-              :key="u.l"
-              class="p-4 rounded-xl bg-slate-50 border border-slate-100"
-            >
-              <div class="flex items-center justify-between mb-3">
-                <span class="text-sm font-bold text-slate-700"
-                  >{{ u.l }}
-                  <span class="text-xs text-slate-400 font-normal"
-                    >({{ u.bk.total }} org)</span
-                  ></span
-                >
-              </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Risiko -->
-                <div class="space-y-3">
-                  <p class="text-[10px] uppercase font-bold text-slate-400">
-                    Risiko
-                  </p>
-                  <div class="space-y-2">
-                    <div v-if="u.bk.risiko.high.v">
-                      <div
-                        class="flex justify-between text-[10px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-red-600">High Risk</span>
-                        <span
-                          >{{ u.bk.risiko.high.v }} org ({{
-                            u.bk.risiko.high.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-red-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-red-500 rounded-full"
-                          :style="{ width: u.bk.risiko.high.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                    <div v-if="u.bk.risiko.mod.v">
-                      <div
-                        class="flex justify-between text-[10px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-amber-600">Moderate Risk</span>
-                        <span
-                          >{{ u.bk.risiko.mod.v }} org ({{
-                            u.bk.risiko.mod.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-amber-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-amber-500 rounded-full"
-                          :style="{ width: u.bk.risiko.mod.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                    <div v-if="u.bk.risiko.low.v">
-                      <div
-                        class="flex justify-between text-[10px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-emerald-600">Low Risk</span>
-                        <span
-                          >{{ u.bk.risiko.low.v }} org ({{
-                            u.bk.risiko.low.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-emerald-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-emerald-500 rounded-full"
-                          :style="{ width: u.bk.risiko.low.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <!-- Instrumen -->
-                <div class="space-y-3">
-                  <p class="text-[10px] uppercase font-bold text-slate-400">
-                    Instrumen
-                  </p>
-                  <div class="space-y-2">
-                    <div v-if="u.bk.instr.mAnak.v">
-                      <div
-                        class="flex justify-between text-[10px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-sky-600">MMYS Anak</span>
-                        <span
-                          >{{ u.bk.instr.mAnak.v }} org ({{
-                            u.bk.instr.mAnak.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-sky-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-sky-500 rounded-full"
-                          :style="{ width: u.bk.instr.mAnak.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                    <div v-if="u.bk.instr.mRem.v">
-                      <div
-                        class="flex justify-between text-[10px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-indigo-600">MMYS Remaja</span>
-                        <span
-                          >{{ u.bk.instr.mRem.v }} org ({{
-                            u.bk.instr.mRem.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-indigo-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-indigo-500 rounded-full"
-                          :style="{ width: u.bk.instr.mRem.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                    <div v-if="u.bk.instr.phq.v">
-                      <div
-                        class="flex justify-between text-[10px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-orange-600">PHQ-4</span>
-                        <span
-                          >{{ u.bk.instr.phq.v }} org ({{
-                            u.bk.instr.phq.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-orange-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-orange-500 rounded-full"
-                          :style="{ width: u.bk.instr.phq.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                    <div v-if="u.bk.instr.epds.v">
-                      <div
-                        class="flex justify-between text-[10px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-rose-600">EPDS</span>
-                        <span
-                          >{{ u.bk.instr.epds.v }} org ({{
-                            u.bk.instr.epds.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-rose-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-rose-500 rounded-full"
-                          :style="{ width: u.bk.instr.epds.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Jenis Kelamin Tab -->
-          <div
-            v-show="grafikTab === 'gender'"
-            class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-6"
-          >
-            <h3
-              class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4"
-            >
-              Distribusi Gender (Breakdown Risiko & Instrumen)
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div
-                v-for="g in grafikGender"
-                :key="g.l"
-                class="p-5 rounded-2xl border border-slate-100 bg-slate-50"
-              >
-                <div class="flex items-center gap-3 mb-4">
-                  <div
-                    class="w-10 h-10 rounded-full flex items-center justify-center"
-                    :class="g.color"
-                  >
-                    <span class="material-symbols-outlined">{{ g.icon }}</span>
-                  </div>
-                  <div>
-                    <p class="text-lg font-black text-slate-700">{{ g.l }}</p>
-                    <p class="text-xs font-semibold text-slate-400">
-                      {{ g.bk.total }} Total Skrining
-                    </p>
-                  </div>
-                </div>
-
-                <div class="space-y-4">
-                  <div class="space-y-2">
-                    <p class="text-[10px] uppercase font-bold text-slate-400">
-                      Risiko
-                    </p>
-                    <div v-if="g.bk.risiko.high.v">
-                      <div
-                        class="flex justify-between text-[10px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-red-600">High Risk</span>
-                        <span
-                          >{{ g.bk.risiko.high.v }} org ({{
-                            g.bk.risiko.high.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-red-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-red-500 rounded-full"
-                          :style="{ width: g.bk.risiko.high.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                    <div v-if="g.bk.risiko.mod.v">
-                      <div
-                        class="flex justify-between text-[10px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-amber-600">Moderate Risk</span>
-                        <span
-                          >{{ g.bk.risiko.mod.v }} org ({{
-                            g.bk.risiko.mod.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-amber-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-amber-500 rounded-full"
-                          :style="{ width: g.bk.risiko.mod.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                    <div v-if="g.bk.risiko.low.v">
-                      <div
-                        class="flex justify-between text-[10px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-emerald-600">Low Risk</span>
-                        <span
-                          >{{ g.bk.risiko.low.v }} org ({{
-                            g.bk.risiko.low.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-emerald-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-emerald-500 rounded-full"
-                          :style="{ width: g.bk.risiko.low.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="space-y-2">
-                    <p class="text-[10px] uppercase font-bold text-slate-400">
-                      Instrumen
-                    </p>
-                    <div v-if="g.bk.instr.mAnak.v">
-                      <div
-                        class="flex justify-between text-[10px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-sky-600">MMYS Anak</span>
-                        <span
-                          >{{ g.bk.instr.mAnak.v }} org ({{
-                            g.bk.instr.mAnak.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-sky-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-sky-500 rounded-full"
-                          :style="{ width: g.bk.instr.mAnak.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                    <div v-if="g.bk.instr.mRem.v">
-                      <div
-                        class="flex justify-between text-[10px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-indigo-600">MMYS Remaja</span>
-                        <span
-                          >{{ g.bk.instr.mRem.v }} org ({{
-                            g.bk.instr.mRem.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-indigo-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-indigo-500 rounded-full"
-                          :style="{ width: g.bk.instr.mRem.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                    <div v-if="g.bk.instr.phq.v">
-                      <div
-                        class="flex justify-between text-[10px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-orange-600">PHQ-4</span>
-                        <span
-                          >{{ g.bk.instr.phq.v }} org ({{
-                            g.bk.instr.phq.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-orange-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-orange-500 rounded-full"
-                          :style="{ width: g.bk.instr.phq.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                    <div v-if="g.bk.instr.epds.v">
-                      <div
-                        class="flex justify-between text-[10px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-rose-600">EPDS</span>
-                        <span
-                          >{{ g.bk.instr.epds.v }} org ({{
-                            g.bk.instr.epds.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-rose-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-rose-500 rounded-full"
-                          :style="{ width: g.bk.instr.epds.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Daerah/Kecamatan Tab -->
-          <div
-            v-show="grafikTab === 'daerah'"
-            class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5 space-y-4"
-          >
-            <h3
-              class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2"
-            >
-              Distribusi Daerah (Kecamatan & Desa)
-            </h3>
-            <div
-              v-for="d in grafikDaerah"
-              :key="d.l"
-              class="border border-slate-200 rounded-xl overflow-hidden"
-            >
-              <div class="bg-slate-50 p-4 border-b border-slate-200">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="flex items-center gap-2">
-                    <span
-                      class="material-symbols-outlined text-blue-500 text-[18px]"
-                      >location_city</span
-                    >
-                    <span class="font-black text-slate-700"
-                      >{{ d.l }}
-                      <span class="text-xs font-normal text-slate-400"
-                        >({{ d.bk.total }} org)</span
-                      ></span
-                    >
-                  </div>
-                  <button
-                    @click="toggleDaerah(d.l)"
-                    class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 rounded-lg text-[10px] font-bold text-slate-500 hover:text-blue-600 transition-all"
-                  >
-                    <span
-                      class="material-symbols-outlined text-[16px] transition-transform duration-200"
-                      :class="
-                        expandedDaerah.has(d.l)
-                          ? 'rotate-180 text-blue-500'
-                          : ''
-                      "
-                    >
-                      expand_more
-                    </span>
-                    {{ expandedDaerah.has(d.l) ? "Tutup Desa" : "Lihat Desa" }}
-                  </button>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <!-- Risiko Kecamatan -->
-                  <div class="space-y-2">
-                    <p class="text-[9px] uppercase font-bold text-slate-400">
-                      Risiko
-                    </p>
-                    <div v-if="d.bk.risiko.high.v">
-                      <div
-                        class="flex justify-between text-[9px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-red-600">High Risk</span>
-                        <span
-                          >{{ d.bk.risiko.high.v }} org ({{
-                            d.bk.risiko.high.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-red-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-red-500 rounded-full"
-                          :style="{ width: d.bk.risiko.high.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                    <div v-if="d.bk.risiko.mod.v">
-                      <div
-                        class="flex justify-between text-[9px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-amber-600">Moderate Risk</span>
-                        <span
-                          >{{ d.bk.risiko.mod.v }} org ({{
-                            d.bk.risiko.mod.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-amber-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-amber-500 rounded-full"
-                          :style="{ width: d.bk.risiko.mod.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                    <div v-if="d.bk.risiko.low.v">
-                      <div
-                        class="flex justify-between text-[9px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-emerald-600">Low Risk</span>
-                        <span
-                          >{{ d.bk.risiko.low.v }} org ({{
-                            d.bk.risiko.low.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-emerald-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-emerald-500 rounded-full"
-                          :style="{ width: d.bk.risiko.low.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                  <!-- Instrumen Kecamatan -->
-                  <div class="space-y-2">
-                    <p class="text-[9px] uppercase font-bold text-slate-400">
-                      Instrumen
-                    </p>
-                    <div v-if="d.bk.instr.mAnak.v">
-                      <div
-                        class="flex justify-between text-[9px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-sky-600">MMYS Anak</span>
-                        <span
-                          >{{ d.bk.instr.mAnak.v }} org ({{
-                            d.bk.instr.mAnak.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-sky-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-sky-500 rounded-full"
-                          :style="{ width: d.bk.instr.mAnak.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                    <div v-if="d.bk.instr.mRem.v">
-                      <div
-                        class="flex justify-between text-[9px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-indigo-600">MMYS Remaja</span>
-                        <span
-                          >{{ d.bk.instr.mRem.v }} org ({{
-                            d.bk.instr.mRem.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-indigo-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-indigo-500 rounded-full"
-                          :style="{ width: d.bk.instr.mRem.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                    <div v-if="d.bk.instr.phq.v">
-                      <div
-                        class="flex justify-between text-[9px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-orange-600">PHQ-4</span>
-                        <span
-                          >{{ d.bk.instr.phq.v }} org ({{
-                            d.bk.instr.phq.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-orange-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-orange-500 rounded-full"
-                          :style="{ width: d.bk.instr.phq.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                    <div v-if="d.bk.instr.epds.v">
-                      <div
-                        class="flex justify-between text-[9px] font-bold text-slate-500 mb-0.5"
-                      >
-                        <span class="text-rose-600">EPDS</span>
-                        <span
-                          >{{ d.bk.instr.epds.v }} org ({{
-                            d.bk.instr.epds.pct
-                          }}%)</span
-                        >
-                      </div>
-                      <div
-                        class="w-full h-1.5 rounded-full bg-rose-100 overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-rose-500 rounded-full"
-                          :style="{ width: d.bk.instr.epds.pct + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div
-                v-show="expandedDaerah.has(d.l)"
-                class="p-4 bg-white space-y-3 animate-in slide-in-from-top-2 duration-300"
-              >
-                <p class="text-[10px] font-bold text-slate-500 uppercase">
-                  Distribusi Desa / Kelurahan
-                </p>
-                <div
-                  v-for="desa in d.desas"
-                  :key="desa.l"
-                  class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 ml-2 border-l-2 border-slate-100 pl-3"
-                >
-                  <span
-                    class="text-xs font-semibold text-slate-600 w-28 truncate shrink-0"
-                    >{{ desa.l }}
-                    <span class="text-[10px] text-slate-400 font-normal"
-                      >({{ desa.bk.total }})</span
-                    ></span
-                  >
-                  <div
-                    class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 w-full py-2"
-                  >
-                    <!-- Risiko Desa -->
-                    <div class="space-y-1.5">
-                      <p class="text-[8px] uppercase font-bold text-slate-400">
-                        Risiko
-                      </p>
-                      <div v-if="desa.bk.risiko.high.v">
-                        <div
-                          class="flex justify-between text-[9px] font-bold text-slate-500 mb-0.5"
-                        >
-                          <span class="text-red-500">High Risk</span
-                          ><span
-                            >{{ desa.bk.risiko.high.v }} ({{
-                              desa.bk.risiko.high.pct
-                            }}%)</span
-                          >
-                        </div>
-                        <div
-                          class="w-full h-1 rounded-full bg-red-100 overflow-hidden"
-                        >
-                          <div
-                            class="h-full bg-red-500"
-                            :style="{ width: desa.bk.risiko.high.pct + '%' }"
-                          ></div>
-                        </div>
-                      </div>
-                      <div v-if="desa.bk.risiko.mod.v">
-                        <div
-                          class="flex justify-between text-[9px] font-bold text-slate-500 mb-0.5"
-                        >
-                          <span class="text-amber-500">Mod Risk</span
-                          ><span
-                            >{{ desa.bk.risiko.mod.v }} ({{
-                              desa.bk.risiko.mod.pct
-                            }}%)</span
-                          >
-                        </div>
-                        <div
-                          class="w-full h-1 rounded-full bg-amber-100 overflow-hidden"
-                        >
-                          <div
-                            class="h-full bg-amber-500"
-                            :style="{ width: desa.bk.risiko.mod.pct + '%' }"
-                          ></div>
-                        </div>
-                      </div>
-                      <div v-if="desa.bk.risiko.low.v">
-                        <div
-                          class="flex justify-between text-[9px] font-bold text-slate-500 mb-0.5"
-                        >
-                          <span class="text-emerald-500">Low Risk</span
-                          ><span
-                            >{{ desa.bk.risiko.low.v }} ({{
-                              desa.bk.risiko.low.pct
-                            }}%)</span
-                          >
-                        </div>
-                        <div
-                          class="w-full h-1 rounded-full bg-emerald-100 overflow-hidden"
-                        >
-                          <div
-                            class="h-full bg-emerald-500"
-                            :style="{ width: desa.bk.risiko.low.pct + '%' }"
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                    <!-- Instrumen Desa -->
-                    <div class="space-y-1.5">
-                      <p class="text-[8px] uppercase font-bold text-slate-400">
-                        Instrumen
-                      </p>
-                      <div v-if="desa.bk.instr.mAnak.v">
-                        <div
-                          class="flex justify-between text-[9px] font-bold text-slate-500 mb-0.5"
-                        >
-                          <span class="text-sky-500">M.Anak</span
-                          ><span
-                            >{{ desa.bk.instr.mAnak.v }} ({{
-                              desa.bk.instr.mAnak.pct
-                            }}%)</span
-                          >
-                        </div>
-                        <div
-                          class="w-full h-1 rounded-full bg-sky-100 overflow-hidden"
-                        >
-                          <div
-                            class="h-full bg-sky-500"
-                            :style="{ width: desa.bk.instr.mAnak.pct + '%' }"
-                          ></div>
-                        </div>
-                      </div>
-                      <div v-if="desa.bk.instr.mRem.v">
-                        <div
-                          class="flex justify-between text-[9px] font-bold text-slate-500 mb-0.5"
-                        >
-                          <span class="text-indigo-500">M.Rem</span
-                          ><span
-                            >{{ desa.bk.instr.mRem.v }} ({{
-                              desa.bk.instr.mRem.pct
-                            }}%)</span
-                          >
-                        </div>
-                        <div
-                          class="w-full h-1 rounded-full bg-indigo-100 overflow-hidden"
-                        >
-                          <div
-                            class="h-full bg-indigo-500"
-                            :style="{ width: desa.bk.instr.mRem.pct + '%' }"
-                          ></div>
-                        </div>
-                      </div>
-                      <div v-if="desa.bk.instr.phq.v">
-                        <div
-                          class="flex justify-between text-[9px] font-bold text-slate-500 mb-0.5"
-                        >
-                          <span class="text-orange-500">PHQ-4</span
-                          ><span
-                            >{{ desa.bk.instr.phq.v }} ({{
-                              desa.bk.instr.phq.pct
-                            }}%)</span
-                          >
-                        </div>
-                        <div
-                          class="w-full h-1 rounded-full bg-orange-100 overflow-hidden"
-                        >
-                          <div
-                            class="h-full bg-orange-500"
-                            :style="{ width: desa.bk.instr.phq.pct + '%' }"
-                          ></div>
-                        </div>
-                      </div>
-                      <div v-if="desa.bk.instr.epds.v">
-                        <div
-                          class="flex justify-between text-[9px] font-bold text-slate-500 mb-0.5"
-                        >
-                          <span class="text-rose-500">EPDS</span
-                          ><span
-                            >{{ desa.bk.instr.epds.v }} ({{
-                              desa.bk.instr.epds.pct
-                            }}%)</span
-                          >
-                        </div>
-                        <div
-                          class="w-full h-1 rounded-full bg-rose-100 overflow-hidden"
-                        >
-                          <div
-                            class="h-full bg-rose-500"
-                            :style="{ width: desa.bk.instr.epds.pct + '%' }"
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          </div>
         </div>
 
         <!-- ═══ LAPORAN VIEW ═══ -->
@@ -1859,17 +1035,29 @@
     </div>
     <!-- end main area -->
 
-    <!-- ═══ MODAL DETAIL ═══ -->
+    <!-- ═══ MODAL DETAIL ═══
+         role="dialog" + aria-modal + aria-labelledby memberi tahu pembaca
+         layar bahwa ini jendela modal dan menyebutkan judulnya. Di-teleport
+         ke body agar lepas dari konteks penumpukan tabel. Tombol Escape dan
+         pengembalian fokus ditangani di script (onMounted/onUnmounted watch
+         selectedDetail). -->
+    <Teleport to="body">
     <div
       v-if="selectedDetail"
       class="fixed inset-0 z-[999] flex items-end sm:items-center justify-center p-0 sm:p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="judul-detail-modal"
+      @keydown.esc="selectedDetail = null"
     >
       <div
         class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
         @click="selectedDetail = null"
       ></div>
       <div
-        class="relative z-10 w-full sm:max-w-2xl bg-white sm:rounded-2xl shadow-2xl flex flex-col h-[90vh] sm:h-[650px] overflow-hidden"
+        ref="modalPanel"
+        tabindex="-1"
+        class="relative z-10 w-full sm:max-w-2xl bg-white sm:rounded-2xl shadow-2xl flex flex-col h-[90vh] sm:h-[650px] overflow-hidden focus:outline-none"
       >
         <div
           class="px-5 py-4 bg-gradient-to-r from-[#0f4b80] to-[#1e88e5] sm:rounded-t-2xl flex items-start justify-between gap-3 shrink-0"
@@ -1880,7 +1068,7 @@
             >
               Detail Hasil Skrining
             </p>
-            <h2 class="text-white font-bold text-lg leading-tight">
+            <h2 id="judul-detail-modal" class="text-white font-bold text-lg leading-tight">
               {{ selectedDetail.nama_lengkap }}
             </h2>
             <p class="text-blue-200 text-xs font-mono">
@@ -1892,9 +1080,10 @@
           </div>
           <button
             @click="selectedDetail = null"
-            class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center shrink-0 transition-all"
+            aria-label="Tutup detail"
+            class="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white text-white flex items-center justify-center shrink-0 transition-all"
           >
-            <span class="material-symbols-outlined text-[18px]">close</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-[18px]">close</span>
           </button>
         </div>
         <div class="flex border-b border-slate-100 bg-slate-50 shrink-0">
@@ -2356,6 +1545,7 @@
         </div>
       </div>
     </div>
+    </Teleport>
 
     <!-- ═══ KONFIRMASI HAPUS ═══ -->
     <ModalKonfirmasi
@@ -2427,15 +1617,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useDashboardStore } from "@/stores/dashboardStore";
 import { useSkriningStore } from "@/stores/skriningStore";
 import { useToast } from "@/composables/useToast";
-import { escHtml, formatTanggalID } from "@/utils/helpers";
+import { escHtml, formatTanggalID, keTanggalLokal } from "@/utils/helpers";
 import { INSTRUMEN_DATA } from "@/constants/instrumen";
-import { DATA_WILAYAH } from "@/constants/wilayah";
 import { hitungSkor } from "@/utils/skoring";
+import { hitungStatistikSkrining } from "@/utils/statistik";
 import ModalKonfirmasi from "@/components/ModalKonfirmasi.vue";
 import GrafikMudah from "@/components/GrafikMudah.vue";
 import * as XLSX from "xlsx";
@@ -2446,11 +1636,12 @@ const skriningStore = useSkriningStore();
 const { showToast } = useToast();
 
 const selectedDetail = ref(null);
+const modalPanel = ref(null);
+// Elemen yang memicu modal, agar fokus dapat dikembalikan saat ditutup.
+let pemicuModal = null;
 const modalTab = ref(0);
 const confirmDeleteId = ref(null);
 const showLogoutConfirm = ref(false);
-const showGrafik = ref(false);
-const showLaporan = ref(false);
 const laporanPreset = ref("bulan");
 const laporanDari = ref("");
 const laporanSampai = ref("");
@@ -2459,8 +1650,6 @@ let cariTimeout = null;
 
 // ── Sidebar State ──
 const activeView = ref("dashboard");
-const sidebarOpen = ref(false);
-const sidebarCollapsed = ref(true);
 const menuItems = computed(() => [
   { key: "dashboard", label: "Dashboard", icon: "dashboard" },
   {
@@ -2557,8 +1746,24 @@ onMounted(async () => {
   }
 });
 
-watch(selectedDetail, () => {
+watch(selectedDetail, async (baru, lama) => {
   modalTab.value = 0;
+  if (baru) {
+    // Pindahkan fokus ke panel modal agar pembaca layar masuk ke
+    // konteksnya dan Escape langsung tertangkap.
+    await nextTick();
+    modalPanel.value?.focus();
+  } else if (lama) {
+    // Kembalikan fokus ke baris/tombol yang membuka modal.
+    pemicuModal?.focus?.();
+    pemicuModal = null;
+  }
+});
+
+// Bersihkan timer debounce pencarian saat komponen dilepas, agar tidak
+// ada callback yang menyentuh store setelah unmount.
+onBeforeUnmount(() => {
+  if (cariTimeout) clearTimeout(cariTimeout);
 });
 watch(activeView, (v) => {
   if (v === "laporan") {
@@ -2576,21 +1781,46 @@ const riwayatPasien = computed(() => {
     );
 });
 
-// ── Data Unik (Skrining Terakhir per NIK) ──
+// ── Data Unik (skrining terakhir per pasien) ──
+//
+// Sebelumnya mengelompokkan langsung dengan `d.nik` sebagai kunci objek.
+// Akibatnya SELURUH baris tanpa NIK (null, kosong, atau undefined)
+// jatuh ke satu kunci yang sama dan dihitung sebagai SATU orang —
+// menggerus jumlah pasien unik dan seluruh angka risiko yang dihitung
+// dari dataUnik, termasuk grafik dan laporan.
+//
+// Baris tanpa NIK kini diperlakukan sebagai individu tersendiri
+// memakai kunci berbasis id barisnya. Itu pilihan yang lebih aman:
+// melaporkan lebih banyak pasien berisiko daripada menyembunyikannya.
 const dataUnik = computed(() => {
-  const map = {};
-  store.semuaData.forEach((d) => {
-    const nik = d.nik;
-    // Keep record if no record exists for this NIK, or if this record is newer
-    if (
-      !map[nik] ||
-      new Date(d.tanggal_skrining) > new Date(map[nik].tanggal_skrining)
-    ) {
-      map[nik] = d;
+  const map = new Map();
+
+  for (const d of store.semuaData) {
+    const nik = String(d.nik ?? "").trim();
+    // Tanpa NIK yang sah, baris tidak dapat dipastikan milik orang yang
+    // sama, jadi jangan digabungkan.
+    const kunci = nik ? `nik:${nik}` : `baris:${d.id}`;
+
+    const lama = map.get(kunci);
+    if (!lama) {
+      map.set(kunci, d);
+      continue;
     }
-  });
-  return Object.values(map);
+
+    // Perbandingan string 'YYYY-MM-DD' cukup dan urut secara leksikal,
+    // tanpa risiko pergeseran zona waktu dari penguraian Date.
+    const tglBaru = String(d.tanggal_skrining || "").slice(0, 10);
+    const tglLama = String(lama.tanggal_skrining || "").slice(0, 10);
+    if (tglBaru > tglLama) map.set(kunci, d);
+  }
+
+  return [...map.values()];
 });
+// Angka statistik dihitung oleh fungsi murni hitungStatistikSkrining agar dapat
+// diuji terpisah — Dashboard.vue tidak punya component test, jadi kesalahan
+// predikat di sini (angka yang dilaporkan ke Dinkes) tidak akan tertangkap
+// tanpa pengujian pada fungsi tersebut.
+const statistikDashboard = computed(() => hitungStatistikSkrining(store.semuaData));
 
 // ── Stat Cards ──
 const statCards = computed(() => {
@@ -2604,28 +1834,26 @@ const statCards = computed(() => {
   const m = unik.filter((x) => x.tingkat_risiko === "Moderate Risk").length;
   const l = unik.filter((x) => x.tingkat_risiko === "Low Risk").length;
 
-  const now = new Date();
-  const skriningBulanIni = semua.filter((x) => {
-    const tgl = new Date(x.tanggal_skrining);
-    return (
-      tgl.getMonth() === now.getMonth() &&
-      tgl.getFullYear() === now.getFullYear()
-    );
-  }).length;
+  // Perbandingan bulan memakai potongan string 'YYYY-MM' agar tidak
+  // bergantung pada penguraian Date. Kolom tanggal_skrining berupa
+  // tanggal saja, yang bila diurai Date menjadi tengah malam UTC dan
+  // dapat bergeser satu hari di zona waktu Indonesia.
+  const prefixBulanIni = keTanggalLokal(new Date()).slice(0, 7);
+  const bulanIni = (x) =>
+    String(x.tanggal_skrining || "").slice(0, 7) === prefixBulanIni;
 
-  const unikBulanIni = unik.filter((x) => {
-    const tgl = new Date(x.tanggal_skrining);
-    return (
-      tgl.getMonth() === now.getMonth() &&
-      tgl.getFullYear() === now.getFullYear()
-    );
-  }).length;
+  const skriningBulanIni = semua.filter(bulanIni).length;
+  const unikBulanIni = unik.filter(bulanIni).length;
 
   return [
+    // Kedua kartu pertama sebelumnya berlabel "Bulan ini" tetapi
+    // menampilkan total sepanjang waktu — angka bulanan sudah dihitung
+    // namun tidak pernah dipakai. Kini label dan nilainya sepadan, dan
+    // angka bulanan tampil sebagai keterangan di bawahnya.
     {
       label: "Total Skrining",
       nilai: totalSkrining,
-      sub: "Bulan ini",
+      sub: `${skriningBulanIni} bulan ini`,
       icon: "assignment",
       cls: "from-blue-500 to-blue-600",
       txt: "text-blue-600",
@@ -2633,7 +1861,7 @@ const statCards = computed(() => {
     {
       label: "Pasien Unik",
       nilai: totalUnik,
-      sub: "Bulan ini",
+      sub: `${unikBulanIni} bulan ini`,
       icon: "person",
       cls: "from-indigo-500 to-indigo-600",
       txt: "text-indigo-600",
@@ -2692,138 +1920,36 @@ const paginPages = computed(() => {
   return p;
 });
 
-// ── Grafik Tabs ──
-const grafikTab = ref("usia");
-const grafikTabs = [
-  { key: "usia", label: "Usia", icon: "cake" },
-  { key: "gender", label: "Gender", icon: "wc" },
-  { key: "daerah", label: "Daerah", icon: "location_on" },
-];
-
-const grafikUsia = computed(() => {
-  const groups = [
-    { l: "0–5 thn", min: 0, max: 5 },
-    { l: "6–11 thn", min: 6, max: 11 },
-    { l: "12–17 thn", min: 12, max: 17 },
-    { l: "18–25 thn", min: 18, max: 25 },
-    { l: "26–45 thn", min: 26, max: 45 },
-    { l: "46–65 thn", min: 46, max: 65 },
-    { l: "> 65 thn", min: 66, max: 999 },
-  ];
-  return groups
-    .map((g) => {
-      const items = dataUnik.value.filter((d) => {
-        const u = parseInt(d.usia) || 0;
-        return u >= g.min && u <= g.max;
-      });
-      return {
-        ...g,
-        v: items.length,
-        items,
-        bk: calcBreakdown(items),
-      };
-    })
-    .filter((x) => x.v > 0);
-});
-
-const grafikGender = computed(() => {
-  const itemsL = dataUnik.value.filter((d) => d.jenis_kelamin === "L");
-  const itemsP = dataUnik.value.filter((d) => d.jenis_kelamin === "P");
-  return [
-    {
-      l: "Laki-laki",
-      v: itemsL.length,
-      items: itemsL,
-      bk: calcBreakdown(itemsL),
-    },
-    {
-      l: "Perempuan",
-      v: itemsP.length,
-      items: itemsP,
-      bk: calcBreakdown(itemsP),
-    },
-  ].filter((x) => x.v > 0);
-});
-
-function calcBreakdown(items) {
-  const t = items.length;
-  if (t === 0) return { total: 0, risiko: {}, instr: {} };
-  const rh = items.filter((x) => x.tingkat_risiko === "High Risk").length;
-  const rm = items.filter((x) => x.tingkat_risiko === "Moderate Risk").length;
-  const rl = items.filter((x) => x.tingkat_risiko === "Low Risk").length;
-  const iA = items.filter((x) => x.instrumen === "MMYS_ANAK").length;
-  const iR = items.filter((x) => x.instrumen === "MMYS_REMAJA").length;
-  const iP = items.filter((x) => x.instrumen === "PHQ4").length;
-  const iE = items.filter((x) => x.instrumen === "EPDS").length;
-  return {
-    total: t,
-    risiko: {
-      high: { v: rh, pct: Math.round((rh / t) * 100) },
-      mod: { v: rm, pct: Math.round((rm / t) * 100) },
-      low: { v: rl, pct: Math.round((rl / t) * 100) },
-    },
-    instr: {
-      mAnak: { v: iA, pct: Math.round((iA / t) * 100) },
-      mRem: { v: iR, pct: Math.round((iR / t) * 100) },
-      phq: { v: iP, pct: Math.round((iP / t) * 100) },
-      epds: { v: iE, pct: Math.round((iE / t) * 100) },
-    },
-  };
-}
-
-const expandedDaerah = ref(new Set());
-const toggleDaerah = (namaKecamatan) => {
-  if (expandedDaerah.value.has(namaKecamatan)) {
-    expandedDaerah.value.delete(namaKecamatan);
-  } else {
-    expandedDaerah.value.add(namaKecamatan);
-  }
-};
-
-const grafikDaerah = computed(() => {
-  const map = {};
-  dataUnik.value.forEach((d) => {
-    const k = d.kecamatan || "Lainnya";
-    const ds = d.desa || "Lainnya";
-    if (!map[k]) map[k] = { l: k, items: [], mapDesa: {} };
-    map[k].items.push(d);
-    if (!map[k].mapDesa[ds]) map[k].mapDesa[ds] = { l: ds, items: [] };
-    map[k].mapDesa[ds].items.push(d);
-  });
-
-  return Object.values(map)
-    .map((kec) => {
-      kec.bk = calcBreakdown(kec.items);
-      kec.desas = Object.values(kec.mapDesa)
-        .map((desa) => {
-          desa.bk = calcBreakdown(desa.items);
-          return desa;
-        })
-        .sort((a, b) => b.bk.total - a.bk.total);
-      return kec;
-    })
-    .sort((a, b) => b.bk.total - a.bk.total);
-});
 
 // ── Laporan ──
+//
+// Seluruh batas tanggal WAJIB dihitung dengan waktu LOKAL memakai
+// keTanggalLokal(). Sebelumnya fungsi ini mencampur toISOString() (UTC)
+// dengan getFullYear/getMonth (lokal), sehingga di WIB antara 00:00 dan
+// 06:59 batas "sampai" mundur satu hari — dan pada tanggal 1 setiap
+// bulan `dari` bisa melewati `sampai`, membuat laporan kosong tanpa
+// pesan galat.
 function setPreset(key) {
   laporanPreset.value = key;
-  const now = new Date(),
-    y = now.getFullYear(),
-    m = now.getMonth();
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  const hariIniLokal = keTanggalLokal(now);
+
   if (key === "minggu") {
-    const day = now.getDay(),
-      diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    // Senin sebagai awal pekan. getDay(): 0 = Minggu, jadi Minggu
+    // dianggap akhir pekan sebelumnya (-6).
+    const day = now.getDay();
     const mon = new Date(now);
-    mon.setDate(diff);
-    laporanDari.value = mon.toISOString().slice(0, 10);
-    laporanSampai.value = now.toISOString().slice(0, 10);
+    mon.setDate(now.getDate() - day + (day === 0 ? -6 : 1));
+    laporanDari.value = keTanggalLokal(mon);
+    laporanSampai.value = hariIniLokal;
   } else if (key === "bulan") {
-    laporanDari.value = `${y}-${String(m + 1).padStart(2, "0")}-01`;
-    laporanSampai.value = now.toISOString().slice(0, 10);
+    laporanDari.value = keTanggalLokal(new Date(y, m, 1));
+    laporanSampai.value = hariIniLokal;
   } else if (key === "tahun") {
-    laporanDari.value = `${y}-01-01`;
-    laporanSampai.value = now.toISOString().slice(0, 10);
+    laporanDari.value = keTanggalLokal(new Date(y, 0, 1));
+    laporanSampai.value = hariIniLokal;
   } else {
     laporanDari.value = "";
     laporanSampai.value = "";
@@ -2879,7 +2005,9 @@ function renderLaporan() {
 }
 
 // ── Detail Modal ──
-function openDetail(d) {
+function openDetail(d, ev) {
+  // Simpan elemen pemicu agar fokus dapat dikembalikan saat modal tutup.
+  pemicuModal = ev?.currentTarget ?? null;
   selectedDetail.value = d;
 }
 
@@ -3147,44 +2275,6 @@ function buatRowsExport(data) {
     "Kesimpulan Klinis": kesimpulanExport(d),
     Rekomendasi: rekomendasiExport(d),
   }));
-}
-function exportExcel() {
-  const data = store.dataFilter;
-  if (!data.length) {
-    showToast("Tidak ada data untuk diexport.", "warning");
-    return;
-  }
-  try {
-    const rows = buatRowsExport(data);
-    const ws = XLSX.utils.json_to_sheet(rows);
-    ws["!cols"] = [
-      { wch: 5 },
-      { wch: 16 },
-      { wch: 28 },
-      { wch: 20 },
-      { wch: 6 },
-      { wch: 14 },
-      { wch: 25 },
-      { wch: 16 },
-      { wch: 30 },
-      { wch: 16 },
-      { wch: 16 },
-      { wch: 20 },
-      { wch: 14 },
-      { wch: 10 },
-      { wch: 16 },
-      { wch: 40 },
-      { wch: 50 },
-    ];
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Data Skrining");
-    const today = new Date().toISOString().split("T")[0];
-    XLSX.writeFile(wb, `SSJ_Sekadau_${today}.xlsx`);
-
-    showToast(`${data.length} data berhasil diexport ke Excel.`, "success");
-  } catch (err) {
-    showToast("Gagal export.", "error");
-  }
 }
 function buatSuratRujukan(d) {
   skriningStore.setPatientData({
