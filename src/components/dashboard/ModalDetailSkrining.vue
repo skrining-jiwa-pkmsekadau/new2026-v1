@@ -41,7 +41,9 @@
           aria-label="Tutup detail"
           class="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white text-white flex items-center justify-center shrink-0 transition-all"
         >
-          <span aria-hidden="true" class="material-symbols-outlined text-[18px]">close</span>
+          <svg aria-hidden="true" viewBox="0 0 24 24" class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round">
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
         </button>
       </div>
       <div class="flex border-b border-slate-100 bg-slate-50 shrink-0">
@@ -497,7 +499,9 @@
           @click="$emit('close')"
           class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#0f4b80] to-[#1e88e5] text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 hover:shadow-lg"
         >
-          <span class="material-symbols-outlined text-[15px]">close</span>
+          <svg aria-hidden="true" viewBox="0 0 24 24" class="w-[15px] h-[15px] shrink-0" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round">
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
           Tutup
         </button>
       </div>
