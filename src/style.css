@@ -144,6 +144,9 @@
   height: 1em;
   align-items: center;
   justify-content: center;
+  /* Glyph Material Symbols berada sedikit di atas pusat em-box. */
+  position: relative;
+  top: 0.06em;
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
