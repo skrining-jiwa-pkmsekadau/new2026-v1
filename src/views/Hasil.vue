@@ -577,10 +577,10 @@
 
           <button
             @click="skriningBaru"
-            :disabled="actionLocked"
+            :disabled="newScreeningLocked"
             :class="[
               'flex-[2] py-3 rounded-xl text-white font-bold text-sm shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2',
-              actionLocked
+              newScreeningLocked
                 ? 'bg-slate-300 cursor-not-allowed opacity-60'
                 : 'bg-gradient-to-r from-[#0f4b80] to-[#1e88e5] hover:from-[#0a355c] hover:to-[#1565c0]',
             ]"
@@ -604,7 +604,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import { useSkriningStore } from "@/stores/skriningStore";
 import { useToast } from "@/composables/useToast";
@@ -613,6 +613,7 @@ import { formatTanggalID } from "@/utils/helpers";
 import { db } from "@/services/supabase";
 import PanelKrisis from "@/components/PanelKrisis.vue";
 import { NILAI_KRISIS_E10 } from "@/utils/skoring";
+import { bolehRetry, cocokkanReceipt, kodeReceipt } from "@/utils/receiptSkrining";
 
 const router = useRouter();
 const store = useSkriningStore();
@@ -633,7 +634,19 @@ const currentScreeningKey = computed(() =>
   buildScreeningKey(pasien.value, store.instrumen, store.answers),
 );
 const isSaving = computed(() => Boolean(saveStatus.value?.loading));
-const actionLocked = computed(() => isSaving.value || Boolean(saveStatus.value?.retry));
+const actionLocked = computed(() => isSaving.value);
+const newScreeningLocked = computed(
+  () => isSaving.value || Boolean(saveStatus.value?.retry),
+);
+
+function cegahKeluarSaatBelumTersimpan(event) {
+  if (!isSaving.value) return;
+  event.preventDefault();
+  event.returnValue = "";
+}
+
+onMounted(() => window.addEventListener("beforeunload", cegahKeluarSaatBelumTersimpan));
+onBeforeUnmount(() => window.removeEventListener("beforeunload", cegahKeluarSaatBelumTersimpan));
 
 onMounted(() => {
   if (
@@ -648,7 +661,7 @@ onMounted(() => {
     saveStatus.value = {
       icon: "check_circle",
       cls: "flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 font-medium",
-      msg: "Data berhasil disimpan ke server.",
+      msg: `Data tersimpan. Kode penerimaan: ${kodeReceipt(store.submissionId)}`,
     };
     return;
   }
@@ -775,8 +788,17 @@ async function simpanKeSupabase() {
       consent_wali: store.consentWali,
     };
 
-    const { error } = await db.rpc("simpan_skrining", { payload_data: payload });
-    if (error) throw error;
+    let receipt;
+    let error;
+    let status;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      ({ data: receipt, error, status } = await db.rpc("simpan_skrining", { payload_data: payload }));
+      if (!error) break;
+      if (!bolehRetry(status) || attempt === 3) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 300 * attempt));
+    }
+
+    cocokkanReceipt(receipt, payload.submission_id);
 
     if (currentScreeningKey.value !== screeningKey) return;
 
@@ -786,7 +808,7 @@ async function simpanKeSupabase() {
     saveStatus.value = {
       icon: "check_circle",
       cls: "flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 font-medium",
-      msg: "Data berhasil disimpan ke server.",
+      msg: `Data tersimpan. Kode penerimaan: ${kodeReceipt(receipt)}`,
     };
     showToast("Data skrining berhasil disimpan!", "success");
   } catch (err) {
@@ -803,12 +825,12 @@ async function simpanKeSupabase() {
   }
 }
 function goHome() {
-  if (actionLocked.value) return;
+  if (isSaving.value) return;
   router.push("/");
 }
 
 function cetakPDF() {
-  if (actionLocked.value) return;
+  if (isSaving.value) return;
   store.modeCetak = true;
   window.print();
   window.onafterprint = () => {
@@ -817,7 +839,7 @@ function cetakPDF() {
 }
 
 function skriningBaru() {
-  if (actionLocked.value) return;
+  if (isSaving.value || saveStatus.value?.retry) return;
   store.resetSkrining();
   // resetSkrining menghapus catatan persetujuan, jadi pasien berikutnya
   // harus melewati gerbang consent lagi. Persetujuan bersifat per orang,

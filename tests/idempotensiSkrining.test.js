@@ -23,6 +23,17 @@ describe('kontrak penyimpanan skrining serentak', () => {
     expect(pasienB).not.toBe(pasienA)
     expect(store.ensureSubmissionId()).toBe(pasienB)
   })
+
+  it('perubahan jawaban membuat submission_id baru', () => {
+    const store = useSkriningStore()
+    store.setPatientData({ nik: 'synthetic-a' })
+    store.setAnswer(0, { id: 'PHQ1', value: 0 })
+    const sebelum = store.ensureSubmissionId()
+
+    store.setAnswer(0, { id: 'PHQ1', value: 1 })
+
+    expect(store.ensureSubmissionId()).not.toBe(sebelum)
+  })
   it('migrasi mengunci submission_id dan RPC idempoten', () => {
     const sql = baca('../db/08_idempotensi_skrining.sql')
 

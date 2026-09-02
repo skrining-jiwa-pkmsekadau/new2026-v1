@@ -66,6 +66,9 @@ export const useSkriningStore = defineStore('skrining', () => {
   /** Simpan jawaban di index tertentu */
   function setAnswer(index, answer) {
     const arr = [...answers.value]
+    if (JSON.stringify(arr[index]) !== JSON.stringify(answer)) {
+      submissionId.value = crypto.randomUUID()
+    }
     arr[index] = answer
     answers.value = arr
   }
