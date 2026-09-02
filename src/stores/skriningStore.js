@@ -14,6 +14,7 @@ export const useSkriningStore = defineStore('skrining', () => {
   const sudahSetujuJujur     = ref(false)
   const isSaved              = ref(false)
   const savedScreeningKey    = ref(null)
+  const submissionId         = ref(null)
 
   // ── Persetujuan pelindungan data pribadi (UU 27/2022) ──
   // Waktu dan versi kebijakan yang disetujui, dikirim ke server bersama
@@ -40,14 +41,21 @@ export const useSkriningStore = defineStore('skrining', () => {
     sudahSetujuJujur.value     = false
     isSaved.value              = false
     savedScreeningKey.value    = null
+    submissionId.value         = null
     consentAt.value            = null
     consentVersion.value       = null
     consentWali.value          = false
   }
 
+  function ensureSubmissionId() {
+    if (!submissionId.value) submissionId.value = crypto.randomUUID()
+    return submissionId.value
+  }
+
   /** Simpan data identitas pasien */
   function setPatientData(data) {
     patientData.value = { ...data }
+    submissionId.value = crypto.randomUUID()
   }
 
   /** Set instrumen yang digunakan */
@@ -115,11 +123,13 @@ export const useSkriningStore = defineStore('skrining', () => {
     sudahSetujuJujur,
     isSaved,
     savedScreeningKey,
+    submissionId,
     consentAt,
     consentVersion,
     consentWali,
     // actions
     resetSkrining,
+    ensureSubmissionId,
     setPatientData,
     setInstrumen,
     setAnswer,

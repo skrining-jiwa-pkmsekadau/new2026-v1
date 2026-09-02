@@ -749,36 +749,32 @@ async function simpanKeSupabase() {
     msg: "Menyimpan data ke server...",
   };
 
-  // Hanya kirim data identitas + jawaban mentah ke server.
-  // Server (RPC simpan_skrining) akan menghitung skor, risiko, dan rekomendasi sendiri
-  // agar tidak bisa dimanipulasi dari client/devtools.
-  const payload = {
-    nama_lengkap: pasien.value.nama_lengkap,
-    nik: pasien.value.nik,
-    tanggal_lahir: pasien.value.tanggal_lahir,
-    usia: pasien.value.usia,
-    jenis_kelamin: pasien.value.jenis_kelamin,
-    nomor_hp: pasien.value.nomor_hp || "-",
-    is_hamil_nifas: pasien.value.is_hamil_nifas,
-    alamat: pasien.value.alamat,
-    kecamatan: pasien.value.kecamatan,
-    desa: pasien.value.desa,
-    pendidikan: pasien.value.pendidikan,
-    pekerjaan: pasien.value.pekerjaan,
-    nama_sekolah: pasien.value.nama_sekolah || null,
-    tanggal_skrining: pasien.value.tanggal_skrining,
-    tempat_skrining: pasien.value.tempat_skrining,
-    instrumen: store.instrumen,
-    jawaban: [...store.answers],
-    // Bukti persetujuan pelindungan data pribadi (UU 27/2022).
-    // Versi wajib ikut: bila isi kebijakan berubah, harus dapat
-    // dibuktikan isi mana yang disetujui pasien ini.
-    consent_at: store.consentAt,
-    consent_version: store.consentVersion,
-    consent_wali: store.consentWali,
-  };
-
   try {
+    // ID acak tidak memuat identitas/jawaban dan tetap sama saat retry.
+    const payload = {
+      submission_id: store.ensureSubmissionId(),
+      nama_lengkap: pasien.value.nama_lengkap,
+      nik: pasien.value.nik,
+      tanggal_lahir: pasien.value.tanggal_lahir,
+      usia: pasien.value.usia,
+      jenis_kelamin: pasien.value.jenis_kelamin,
+      nomor_hp: pasien.value.nomor_hp || "-",
+      is_hamil_nifas: pasien.value.is_hamil_nifas,
+      alamat: pasien.value.alamat,
+      kecamatan: pasien.value.kecamatan,
+      desa: pasien.value.desa,
+      pendidikan: pasien.value.pendidikan,
+      pekerjaan: pasien.value.pekerjaan,
+      nama_sekolah: pasien.value.nama_sekolah || null,
+      tanggal_skrining: pasien.value.tanggal_skrining,
+      tempat_skrining: pasien.value.tempat_skrining,
+      instrumen: store.instrumen,
+      jawaban: [...store.answers],
+      consent_at: store.consentAt,
+      consent_version: store.consentVersion,
+      consent_wali: store.consentWali,
+    };
+
     const { error } = await db.rpc("simpan_skrining", { payload_data: payload });
     if (error) throw error;
 
