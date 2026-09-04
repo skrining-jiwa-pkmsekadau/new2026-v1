@@ -1,0 +1,39 @@
+SETUP NOTIFIKASI TELEGRAM
+
+1. Buat bot melalui @BotFather. Jangan kirim token melalui chat atau commit Git.
+2. Buat channel Telegram privat khusus petugas. Tambahkan bot sebagai admin dengan izin Post Messages saja.
+3. Dapatkan chat_id channel privat; umumnya diawali -100.
+4. Supabase Dashboard > Edge Functions > Secrets, tambahkan:
+   TELEGRAM_BOT_TOKEN
+   TELEGRAM_CHAT_ID
+   WEBHOOK_SECRET (nilai acak minimal 32 karakter)
+5. Jalankan db/10_notifikasi_telegram.sql di SQL Editor. Hasil wajib:
+   SIAP konfigurasi Telegram
+6. Deploy Edge Function notify-telegram dengan JWT verification dimatikan.
+7. Supabase Dashboard > Database > Webhooks > Create webhook:
+   Name: notify-telegram-on-screening
+   Table: public.telegram_notification_outbox
+   Event: INSERT saja
+   Method: POST
+   Timeout: 5000 ms
+   URL: https://<PROJECT_REF>.supabase.co/functions/v1/notify-telegram
+   Header: x-webhook-secret = WEBHOOK_SECRET yang sama
+8. Buat Supabase Cron setiap 1 menit yang POST ke URL function yang sama:
+   Header: x-webhook-secret = WEBHOOK_SECRET
+   Body JSON: {"type":"REDRIVE"}
+   Cron ini mengirim ulang outbox gagal/stale, maksimal 10 percobaan.
+9. Uji koneksi tanpa membuat data pasien:
+   POST function dengan header secret dan body {"type":"TEST"}.
+   Pesan "PIJAR — Tes notifikasi berhasil" harus masuk.
+10. Periksa Edge Function Logs dan Database Webhook history/net._http_response.
+11. Monitoring tertunda:
+   SELECT o.submission_id, l.status, l.attempt, l.updated_at
+   FROM public.telegram_notification_outbox o
+   LEFT JOIN public.telegram_notification_log l USING (submission_id)
+   WHERE l.submission_id IS NULL OR l.status <> 'sent';
+
+KEAMANAN
+- Database Webhook hanya membawa submission_id dari outbox; PHI diambil internal oleh function memakai service_role.
+- Semua risiko Low/Moderate/High dikirim.
+- Dedup berdasarkan submission_id. Log teknis tidak menyimpan PHI.
+- Kegagalan Telegram tidak membatalkan INSERT screenings karena webhook asynchronous.
