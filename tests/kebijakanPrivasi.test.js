@@ -162,7 +162,7 @@ describe('gerbang persetujuan tidak dapat dilewati', () => {
   })
 
   it('payload penyimpanan menyertakan bukti persetujuan', () => {
-    const hasil = baca('../src/views/Hasil.vue')
+    const hasil = baca('../src/services/simpanSkrining.js')
     expect(hasil).toContain('consent_at: store.consentAt')
     expect(hasil).toContain('consent_version: store.consentVersion')
     expect(hasil).toContain('consent_wali: store.consentWali')

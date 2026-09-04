@@ -7,7 +7,8 @@
       <div class="flex items-center gap-3 mb-6">
         <button
           @click="goBackToLastQuestion"
-          class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 hover:bg-slate-50 shadow-sm"
+          :disabled="sedangMenyimpan"
+          class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 hover:bg-slate-50 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span class="material-symbols-outlined text-slate-500 text-[20px]"
             >arrow_back</span
@@ -115,6 +116,7 @@
         >
         <p class="text-xs text-emerald-700 font-medium">
           Semua {{ totalSoal }} soal dijawab.
+          <span class="sr-only"> Tombol simpan dan lihat hasil sudah aktif.</span>
         </p>
       </div>
       <div
@@ -134,21 +136,25 @@
       <div class="flex gap-3">
         <button
           @click="ubahJawaban(0)"
-          class="flex-1 py-3.5 rounded-xl border-2 border-slate-200 hover:border-blue-300 text-sm font-semibold text-slate-600 bg-white transition-all"
+          :disabled="sedangMenyimpan"
+          class="flex-1 py-3.5 rounded-xl border-2 border-slate-200 hover:border-blue-300 text-sm font-semibold text-slate-600 bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           &#8592; Ubah
         </button>
         <button
           @click="konfirmasiSubmit"
-          :disabled="!semuaDijawab"
+          :disabled="!semuaDijawab || sedangMenyimpan"
+          :aria-busy="sedangMenyimpan"
           :class="[
-            'flex-1 py-3.5 rounded-xl text-sm font-bold transition-all',
-            semuaDijawab
-              ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'
+            'result-cta flex-1 py-3.5 rounded-xl text-sm font-bold transition-[background-color,box-shadow,transform,opacity] flex items-center justify-center gap-2',
+            semuaDijawab && !sedangMenyimpan
+              ? 'result-cta--ready bg-blue-600 hover:bg-blue-700 text-white shadow-md'
               : 'bg-slate-200 text-slate-400 cursor-not-allowed',
           ]"
         >
-          Lihat Hasil &#8594;
+          <span v-if="sedangMenyimpan" class="spinner-small" aria-hidden="true"></span>
+          <span>{{ sedangMenyimpan ? 'Menyimpan...' : 'Simpan & Lihat Hasil' }}</span>
+          <span v-if="!sedangMenyimpan" aria-hidden="true">&#8594;</span>
         </button>
       </div>
     </div>
@@ -156,16 +162,19 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useSkriningStore } from "@/stores/skriningStore";
 import { useToast } from "@/composables/useToast";
 import { INSTRUMEN_DATA } from "@/constants/instrumen";
 import { hitungSkor } from "@/utils/skoring";
+import { db } from "@/services/supabase";
+import { simpanSkriningDenganReceipt } from "@/services/simpanSkrining";
 
 const router = useRouter();
 const store = useSkriningStore();
 const { showToast } = useToast();
+const sedangMenyimpan = ref(false);
 
 onMounted(() => {
   if (!store.instrumen || !store.patientData?.nama_lengkap) {
@@ -218,7 +227,8 @@ function goBackToLastQuestion() {
   router.push("/kuesioner");
 }
 
-function konfirmasiSubmit() {
+async function konfirmasiSubmit() {
+  if (sedangMenyimpan.value) return;
   const belum = soalList.value.findIndex(
     (_, i) => store.answers[i] === undefined,
   );
@@ -232,7 +242,82 @@ function konfirmasiSubmit() {
     showToast("Kesalahan menghitung skor.", "error");
     return;
   }
-  store.setHasilSkrining(hasil);
-  router.push("/hasil");
+
+  sedangMenyimpan.value = true;
+  try {
+    const { receipt } = await simpanSkriningDenganReceipt(
+      store,
+      db.rpc.bind(db),
+    );
+    store.setHasilSkrining(hasil);
+    store.isSaved = true;
+    store.savedScreeningKey = buildScreeningKey(
+      store.patientData,
+      store.instrumen,
+      store.answers,
+    );
+    store.submissionId = receipt;
+    router.push("/hasil");
+  } catch {
+    showToast(
+      "Data belum tersimpan. Periksa koneksi lalu tekan tombol lagi.",
+      "error",
+    );
+  } finally {
+    sedangMenyimpan.value = false;
+  }
 }
+
+function buildScreeningKey(patient, instrumen, answers) {
+  return [
+    patient?.nik || "",
+    patient?.tanggal_skrining || "",
+    instrumen || "",
+    JSON.stringify(answers || []),
+  ].join("|");
+}
+
 </script>
+
+<style scoped>
+@keyframes result-cta-notice {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 4px 12px rgb(37 99 235 / 0.25);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.025);
+    box-shadow: 0 10px 24px rgb(37 99 235 / 0.42);
+  }
+}
+
+.result-cta--ready {
+  animation: result-cta-notice 1.6s ease-in-out infinite;
+}
+
+.result-cta--ready:hover,
+.result-cta--ready:focus-visible {
+  animation-play-state: paused;
+  transform: translateY(-1px);
+}
+
+.spinner-small {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgb(148 163 184 / 0.45);
+  border-top-color: rgb(71 85 105);
+  border-radius: 9999px;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result-cta--ready,
+  .spinner-small {
+    animation: none;
+  }
+}
+</style>

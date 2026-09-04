@@ -613,7 +613,8 @@ import { formatTanggalID } from "@/utils/helpers";
 import { db } from "@/services/supabase";
 import PanelKrisis from "@/components/PanelKrisis.vue";
 import { NILAI_KRISIS_E10 } from "@/utils/skoring";
-import { bolehRetry, cocokkanReceipt, kodeReceipt } from "@/utils/receiptSkrining";
+import { kodeReceipt } from "@/utils/receiptSkrining";
+import { simpanSkriningDenganReceipt } from "@/services/simpanSkrining";
 
 const router = useRouter();
 const store = useSkriningStore();
@@ -763,48 +764,15 @@ async function simpanKeSupabase() {
   };
 
   try {
-    // ID acak tidak memuat identitas/jawaban dan tetap sama saat retry.
-    const payload = {
-      submission_id: store.ensureSubmissionId(),
-      nama_lengkap: pasien.value.nama_lengkap,
-      nik: pasien.value.nik,
-      tanggal_lahir: pasien.value.tanggal_lahir,
-      usia: pasien.value.usia,
-      jenis_kelamin: pasien.value.jenis_kelamin,
-      nomor_hp: pasien.value.nomor_hp || "-",
-      is_hamil_nifas: pasien.value.is_hamil_nifas,
-      alamat: pasien.value.alamat,
-      kecamatan: pasien.value.kecamatan,
-      desa: pasien.value.desa,
-      pendidikan: pasien.value.pendidikan,
-      pekerjaan: pasien.value.pekerjaan,
-      nama_sekolah: pasien.value.nama_sekolah || null,
-      tanggal_skrining: pasien.value.tanggal_skrining,
-      tempat_skrining: pasien.value.tempat_skrining,
-      instrumen: store.instrumen,
-      jawaban: [...store.answers],
-      consent_at: store.consentAt,
-      consent_version: store.consentVersion,
-      consent_wali: store.consentWali,
-    };
-
-    let receipt;
-    let error;
-    let status;
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      ({ data: receipt, error, status } = await db.rpc("simpan_skrining", { payload_data: payload }));
-      if (!error) break;
-      if (!bolehRetry(status) || attempt === 3) throw error;
-      await new Promise((resolve) => setTimeout(resolve, 300 * attempt));
-    }
-
-    cocokkanReceipt(receipt, payload.submission_id);
-
+    const { receipt } = await simpanSkriningDenganReceipt(
+      store,
+      db.rpc.bind(db),
+    );
     if (currentScreeningKey.value !== screeningKey) return;
 
     store.isSaved = true;
     store.savedScreeningKey = screeningKey;
-
+    store.submissionId = receipt;
     saveStatus.value = {
       icon: "check_circle",
       cls: "flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 font-medium",
@@ -813,7 +781,6 @@ async function simpanKeSupabase() {
     showToast("Data skrining berhasil disimpan!", "success");
   } catch (err) {
     if (currentScreeningKey.value !== screeningKey) return;
-
     saveStatus.value = {
       loading: false,
       retry: true,
