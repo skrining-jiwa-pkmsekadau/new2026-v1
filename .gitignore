@@ -3,6 +3,9 @@ dist/
 .env
 .env.*
 
+# Artefak lokal Supabase CLI
+supabase/.temp/
+
 # File test/debug — jangan commit
 test-*.js
 check-schema.*
